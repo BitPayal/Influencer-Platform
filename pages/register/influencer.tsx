@@ -153,7 +153,6 @@ console.log('Authenticated User ID:', userId);
   const upsertUserPromise = supabase.from('users').upsert({
     id: userId,
     email: formData.email,
-    name: formData.fullName,
     role: 'influencer',
   }, { onConflict: 'id', ignoreDuplicates: true });
 

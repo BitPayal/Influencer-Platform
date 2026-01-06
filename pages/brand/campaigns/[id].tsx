@@ -55,29 +55,27 @@ const CampaignDetailsPage = () => {
             setApplications(apps || []);
 
             // 3. Fetch Video Submissions
-            // We fetch submissions from influencers who applied to this campaign.
+            // Smart Fetch: Get videos linked to campaign OR unlinked videos from approved influencers
+            let query = supabase
+                .from('video_submissions')
+                .select('*, influencer:influencers(*)')
+                .order('created_at', { ascending: false });
 
-            // In `tasks.tsx` (influencer side), we upsert `video_submissions`.
-            // Does it link to campaign?
-            // The `VideoSubmission` type has `task_assignment_id`.
-            
-            // To simplify for this MVP without complex Task Assignments relation:
-            // We can fetch video submissions from influencers who applied to this campaign, 
-            // AND the video submission was created AFTER application apporval.
-            // BETTER: Add `campaign_id` to `video_submissions` if possible, OR just fetch ALL submissions from approved influencers for now (simplistic).
-            
-            // Let's assume for now we filter locally or fetch based on influencers involved.
-            const approvedInfluencerIds = apps?.filter(a => a.status === 'approved').map(a => a.influencer_id) || [];
-            
+            const approvedInfluencerIds = apps
+                ?.filter(app => app.status === 'approved')
+                .map(app => app.influencer_id) || [];
+
             if (approvedInfluencerIds.length > 0) {
-                 const { data: videos } = await supabase
-                    .from('video_submissions')
-                    .select('*, influencer:influencers(*)')
-                    .in('influencer_id', approvedInfluencerIds)
-                    .order('created_at', { ascending: false });
-                 
-                 setVideoSubmissions(videos as any || []);
+                // Fetch videos for this campaign OR (unlinked AND from approved influencers)
+                query = query.or(`campaign_id.eq.${id},and(campaign_id.is.null,influencer_id.in.(${approvedInfluencerIds.join(',')}))`);
+            } else {
+                query = query.eq('campaign_id', id);
             }
+
+            const { data: videos, error: videoError } = await query;
+            
+            if (videoError) throw videoError;
+            setVideoSubmissions(videos as any || []);
 
         } catch (error) {
             console.error("Error fetching campaign details:", error);
@@ -114,77 +112,43 @@ const CampaignDetailsPage = () => {
         }
     };
 
-    const handleApproveVideo = async (submissionId: string, influencerId: string, currentStatus: string) => {
-        if (currentStatus === 'approved') return;
+    const handleApproveVideo = async (video: VideoSubmission & { influencer: Influencer }) => {
+        if (video.approval_status === 'approved') return;
         
         try {
+            const rate = video.influencer?.video_rate || 0;
+
             // 1. Approve Video
             const { error: videoError } = await (supabase
                 .from('video_submissions') as any)
                 .update({ approval_status: 'approved', reviewed_at: new Date().toISOString() })
-                .eq('id', submissionId);
+                .eq('id', video.id);
 
             if (videoError) throw videoError;
 
-            // 2. Generate Revenue
-            await generateRevenue(influencerId);
+            // 2. Create Payment Record (if rate > 0)
+            if (rate > 0) {
+                const { error: paymentError } = await supabase.from('payments' as any).insert({
+                    influencer_id: video.influencer_id,
+                    video_submission_id: video.id,
+                    amount: rate,
+                    payment_type: 'fixed',
+                    payment_status: 'pending',
+                    notes: `Fixed payment for video: ${video.title} (Brand Approved)`
+                } as any);
+
+                if (paymentError) {
+                     console.error("Error creating payment:", paymentError);
+                     // Don't throw, just warn, as video is approved.
+                     alert("Video approved but failed to create payment record.");
+                }
+            }
 
             fetchCampaignDetails();
-            alert("Video Approved & Revenue Generated!");
-        } catch (error) {
+            alert("Video Approved Successfully!");
+        } catch (error: any) {
             console.error(error);
-            alert('Error approving video');
-        }
-    };
-
-    const generateRevenue = async (influencerId: string) => {
-        // Fetch influencer for follower count
-        const { data: inf } = await supabase
-            .from('influencers')
-            .select('*')
-            .eq('id', influencerId)
-            .single<Influencer>();
-        if (!inf) return;
-
-        const count = inf.follower_count || 0;
-        let payout = 2000;
-        let band: FollowerBand = '0-5k';
-
-        if (count >= 100000) { payout = 10000; band = '100k+'; }
-        else if (count >= 25000) { payout = 7000; band = '25k-100k'; }
-        else if (count >= 5000) { payout = 4000; band = '5k-25k'; }
-
-        const monthName = new Date().toLocaleString('default', { month: 'long' });
-        const year = new Date().getFullYear();
-
-        // Check if revenue record exists for this month
-        const { data: existing } = await supabase
-            .from('revenue_shares')
-            .select('*')
-            .eq('influencer_id', influencerId)
-            .eq('month', monthName)
-            .eq('year', year)
-            .maybeSingle<RevenueShare>();
-
-        if (existing) {
-            await (supabase.from('revenue_shares') as any).update({
-                videos_approved: (existing.videos_approved || 0) + 1,
-                fixed_payout: (existing.fixed_payout || 0) + payout,
-                total_earning: (existing.total_earning || 0) + payout,
-                updated_at: new Date().toISOString()
-            }).eq('id', existing.id);
-        } else {
-            await (supabase.from('revenue_shares') as any).insert({
-                influencer_id: influencerId,
-                month: monthName,
-                year: year,
-                follower_band: band,
-                videos_approved: 1,
-                fixed_payout: payout,
-                performance_share_amount: 0,
-                total_earning: payout,
-                payment_status: 'pending'
-            });
+            alert(error.message || 'Error approving video');
         }
     };
 
@@ -283,7 +247,7 @@ const CampaignDetailsPage = () => {
                                             </span>
                                         </div>
                                         {video.approval_status !== 'approved' && (
-                                            <Button onClick={() => handleApproveVideo(video.id, video.influencer_id, video.approval_status)}>
+                                            <Button onClick={() => handleApproveVideo(video)}>
                                                 Approve & Pay
                                             </Button>
                                         )}

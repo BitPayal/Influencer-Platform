@@ -41,12 +41,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
+        // loading state will be handled in fetchUserProfile
         fetchUserProfile(session.user.id);
       } else {
         setUser(null);
+        setLoading(false);
       }
-
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -118,6 +118,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } catch (err) {
       console.error("fetchUserProfile failed:", err);
       setUser(null);
+    } finally {
+      setLoading(false);
     }
   };
 

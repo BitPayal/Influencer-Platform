@@ -30,7 +30,14 @@ const AdminInfluencers: React.FC = () => {
   );
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [modalOpen, setModalOpen] = useState(false);
+  const [editRate, setEditRate] = useState<string>('');
   const mounted = React.useRef(true);
+
+  useEffect(() => {
+    if (selectedInfluencer) {
+      setEditRate(selectedInfluencer.video_rate?.toString() || '0');
+    }
+  }, [selectedInfluencer]);
 
   useEffect(() => {
     mounted.current = true;
@@ -110,6 +117,34 @@ const AdminInfluencers: React.FC = () => {
       setModalOpen(false);
     } catch (error: any) {
       alert(error.message || 'Failed to reject influencer');
+    }
+  };
+
+  const handleUpdateRate = async () => {
+    if (!selectedInfluencer) return;
+    try {
+      const rate = parseInt(editRate);
+      if (isNaN(rate) || rate < 0) {
+        alert('Please enter a valid rate');
+        return;
+      }
+
+      const { error } = await (supabase
+        .from('influencers') as any)
+        .update({ video_rate: rate })
+        .eq('id', selectedInfluencer.id);
+
+      if (error) throw error;
+      alert('Video rate updated successfully!');
+      
+      // Update local state
+      setInfluencers(prev => prev.map(inf => 
+        inf.id === selectedInfluencer.id ? { ...inf, video_rate: rate } : inf
+      ));
+      setSelectedInfluencer(prev => prev ? { ...prev, video_rate: rate } : null);
+    } catch (error: any) {
+      console.error('Error updating rate:', error);
+      alert('Failed to update video rate');
     }
   };
 
@@ -262,8 +297,23 @@ const AdminInfluencers: React.FC = () => {
                   <p className="font-medium">{selectedInfluencer.upi_id}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Status</p>
                   {getStatusBadge(selectedInfluencer.approval_status)}
+                </div>
+                <div className="col-span-2 border-t pt-4 mt-2">
+                  <label className="text-sm text-gray-600 block mb-1">Video Pay Rate (₹)</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      className="flex-1 p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                      value={editRate}
+                      onChange={(e) => setEditRate(e.target.value)}
+                      placeholder="Enter rate per video"
+                    />
+                    <Button size="sm" onClick={handleUpdateRate}>Update Rate</Button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Fixed amount paid for each approved video.
+                  </p>
                 </div>
               </div>
 

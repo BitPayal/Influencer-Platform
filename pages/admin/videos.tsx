@@ -37,21 +37,52 @@ const AdminVideosPage = () => {
 
   // ✅ Approve
   const approveVideo = async (id) => {
-    await supabase
-      .from("video_submissions")
-      .update({
-        approval_status: "approved",
-        reviewed_at: new Date(),
-      })
-      .eq("id", id);
+    try {
+      const video = videos.find((v) => v.id === id);
+      if (!video) return;
 
-    fetchVideos();
+      const rate = video.influencer?.video_rate || 0; // Default to 0 if not set
+
+      // 1. Update video status
+      const { error: videoError } = await (supabase
+        .from("video_submissions") as any)
+        .update({
+          approval_status: "approved",
+          reviewed_at: new Date(),
+        })
+        .eq("id", id);
+
+      if (videoError) throw videoError;
+
+      // 2. Create Payment Record (if rate > 0)
+      if (rate > 0) {
+        const { error: paymentError } = await supabase.from('payments' as any).insert({
+          influencer_id: video.influencer_id,
+          video_submission_id: id,
+          amount: rate,
+          payment_type: 'fixed',
+          payment_status: 'pending',
+          notes: `Fixed payment for video: ${video.title}`
+        } as any);
+        
+        if (paymentError) {
+          console.error("Error creating payment:", paymentError);
+          alert("Video approved but failed to create payment record. Please create manually.");
+        }
+      }
+
+      alert("Video approved successfully!");
+      fetchVideos();
+    } catch (error) {
+       console.error("Error approving video:", error);
+       alert("Failed to approve video");
+    }
   };
 
   // ❌ Reject
   const rejectVideo = async (id) => {
-    await supabase
-      .from("video_submissions")
+    await (supabase
+      .from("video_submissions") as any)
       .update({
         approval_status: "rejected",
         reviewed_at: new Date(),

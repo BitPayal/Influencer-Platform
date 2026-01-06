@@ -53,6 +53,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const marketingNavItems = [
     { name: 'Dashboard', href: '/brand/dashboard', icon: LayoutDashboard },
+    { name: 'My Campaigns', href: '/brand/campaigns', icon: FileText },
     { name: 'Create Campaign', href: '/brand/create-campaign', icon: FileText },
     { name: 'Find Influencers', href: '/brand/search', icon: Users },
     { name: 'Messages', href: '/messages', icon: FileText }, // basic icon for now

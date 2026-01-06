@@ -28,6 +28,14 @@ const AdminPayments: React.FC = () => {
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [revenueModalOpen, setRevenueModalOpen] = useState(false);
+  const [revData, setRevData] = useState({
+    influencer_id: '',
+    month: new Date().toLocaleString('default', { month: 'long' }),
+    year: new Date().getFullYear(),
+    totalRevenue: ''
+  });
+
   const [formData, setFormData] = useState({
     influencer_id: '',
     amount: '',
@@ -35,6 +43,49 @@ const AdminPayments: React.FC = () => {
     upi_transaction_id: '',
     notes: '',
   });
+
+
+
+  const handleRevenueSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!revData.influencer_id || !revData.totalRevenue) return;
+
+    try {
+      const revenue = parseFloat(revData.totalRevenue);
+      const share = revenue * 0.05;
+
+      // 1. Create Revenue Share Record
+      const { data: shareData, error: shareError } = await (supabase.from('revenue_shares') as any).insert({
+        influencer_id: revData.influencer_id,
+        month: revData.month,
+        year: revData.year,
+        revenue_from_leads: revenue,
+        performance_share_amount: share,
+        total_earning: share, // Assuming only share for now in this record
+        payment_status: 'pending'
+      }).select().single();
+
+      if (shareError) throw shareError;
+
+      // 2. Create Payment Record
+      const { error: payError } = await supabase.from('payments' as any).insert({
+        influencer_id: revData.influencer_id,
+        amount: share,
+        payment_type: 'revenue_share',
+        payment_status: 'pending',
+        notes: `5% Revenue Share for ${revData.month} ${revData.year} (Revenue: ₹${revenue})`
+      } as any);
+
+      if (payError) throw payError;
+
+      alert('Revenue share calculated and payment created!');
+      setRevenueModalOpen(false);
+      fetchData();
+    } catch (error: any) {
+      console.error(error);
+      alert('Failed to process revenue share');
+    }
+  };
 
   useEffect(() => {
     if (user && user.role === 'admin') {
@@ -73,14 +124,14 @@ const AdminPayments: React.FC = () => {
     e.preventDefault();
 
     try {
-      const { error } = await supabase.from('payments').insert({
+      const { error } = await supabase.from('payments' as any).insert({
         influencer_id: formData.influencer_id,
         amount: parseFloat(formData.amount),
         payment_type: formData.payment_type,
         payment_status: 'pending',
         upi_transaction_id: formData.upi_transaction_id || null,
         notes: formData.notes || null,
-      });
+      } as any);
 
       if (error) throw error;
       
@@ -106,8 +157,8 @@ const AdminPayments: React.FC = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('payments')
+      const { error } = await (supabase
+        .from('payments') as any)
         .update({
           payment_status: 'paid',
           upi_transaction_id: transactionId,
@@ -166,10 +217,16 @@ const AdminPayments: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900">Payments</h1>
             <p className="mt-1 text-gray-600">Manage influencer payments</p>
           </div>
-          <Button variant="primary" onClick={() => setModalOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Payment
-          </Button>
+          <div className="flex gap-3">
+             <Button variant="secondary" onClick={() => setRevenueModalOpen(true)}>
+              <DollarSign className="h-4 w-4 mr-2" />
+              Revenue Settlement
+            </Button>
+            <Button variant="primary" onClick={() => setModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Payment
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -338,6 +395,75 @@ const AdminPayments: React.FC = () => {
               </Button>
             </div>
           </form>
+        </Modal>
+
+        {/* Revenue Share Modal */}
+        <Modal
+          isOpen={revenueModalOpen}
+          onClose={() => setRevenueModalOpen(false)}
+          title="Monthly Revenue Settlement"
+          size="md"
+        >
+           <form onSubmit={handleRevenueSubmit} className="space-y-4">
+            <div>
+               <label className="label-text">Select Influencer</label>
+               <select
+                 className="input-field"
+                 value={revData.influencer_id}
+                 onChange={(e) => setRevData({...revData, influencer_id: e.target.value})}
+                 required
+               >
+                 <option value="">Select Influencer</option>
+                 {influencers.map(inf => (
+                   <option key={inf.id} value={inf.id}>{inf.full_name} ({inf.district})</option>
+                 ))}
+               </select>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="label-text">Month</label>
+                <select 
+                  className="input-field"
+                  value={revData.month}
+                  onChange={(e) => setRevData({...revData, month: e.target.value})}
+                >
+                  {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(m => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                 <label className="label-text">Year</label>
+                 <Input 
+                   type="number" 
+                   value={revData.year} 
+                   onChange={(e) => setRevData({...revData, year: parseInt(e.target.value)})}
+                 />
+              </div>
+            </div>
+
+            <Input
+              label="Total Revenue Generated (₹)"
+              type="number"
+              value={revData.totalRevenue}
+              onChange={(e) => setRevData({...revData, totalRevenue: e.target.value})}
+              required
+              helperText="Enter total sales/leads revenue generated by this influencer"
+            />
+
+            <div className="bg-blue-50 p-3 rounded">
+              <p className="text-sm text-blue-800">Calculated 5% Share:</p>
+              <p className="text-xl font-bold text-blue-900">
+                {formatCurrency(parseFloat(revData.totalRevenue || '0') * 0.05)}
+              </p>
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-4">
+               <Button type="button" variant="secondary" onClick={() => setRevenueModalOpen(false)}>Cancel</Button>
+               <Button type="submit" variant="primary">Generate Payment</Button>
+            </div>
+           </form>
         </Modal>
       </div>
     </Layout>

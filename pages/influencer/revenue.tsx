@@ -15,6 +15,7 @@ const InfluencerRevenuePage = () => {
   const [revenues, setRevenues] = useState<RevenueShare[]>([]);
   const [loading, setLoading] = useState(true);
   const [followerBand, setFollowerBand] = useState<FollowerBand>('0-5k');
+  const [videoRate, setVideoRate] = useState<number>(0);
 
   useEffect(() => {
     if (user === undefined) return; // Wait for auth to load
@@ -31,18 +32,21 @@ const InfluencerRevenuePage = () => {
 
   const fetchRevenueData = async () => {
     try {
-      const { data: influencerData } = await supabase
+      const { data } = await supabase
         .from('influencers')
-        .select('id, follower_count')
+        .select('id, follower_count, video_rate')
         .eq('user_id', user?.id)
         .single();
+
+      const influencerData = data as any;
 
       if (!influencerData) return;
 
       const band = getFollowerBand(influencerData.follower_count);
       setFollowerBand(band);
+      setVideoRate(influencerData.video_rate || 0);
 
-      const { data, error } = await supabase
+      const { data: revenueSharesData, error } = await supabase
         .from('revenue_shares')
         .select('*')
         .eq('influencer_id', influencerData.id)
@@ -50,7 +54,7 @@ const InfluencerRevenuePage = () => {
         .order('month', { ascending: false });
 
       if (error) throw error;
-      setRevenues(data || []);
+      setRevenues(revenueSharesData || []);
     } catch (error) {
       console.error('Error fetching revenue data:', error);
     } finally {
@@ -165,14 +169,14 @@ const InfluencerRevenuePage = () => {
                 {followerBand} Followers
               </Badge>
               <p className="text-gray-700 mt-2">
-                Base payout: <span className="font-bold">₹{getPayoutForBand(followerBand)}</span> per
+                Base payout: <span className="font-bold">₹{(videoRate || getPayoutForBand(followerBand)).toLocaleString()}</span> per
                 approved video
               </p>
               <p className="text-sm text-gray-600 mt-1">+ 5% revenue share from generated leads</p>
             </div>
             <div className="text-right">
               <div className="text-3xl font-bold text-indigo-600">
-                ₹{getPayoutForBand(followerBand).toLocaleString()}
+                ₹{(videoRate || getPayoutForBand(followerBand)).toLocaleString()}
               </div>
               <p className="text-sm text-gray-600">per video</p>
             </div>

@@ -29,6 +29,7 @@ const InfluencerVideos: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
+  const [activeCampaigns, setActiveCampaigns] = useState<any[]>([]); // New state
 
   useEffect(() => {
     if (user) {
@@ -59,15 +60,39 @@ const InfluencerVideos: React.FC = () => {
         .single();
 
       setInfluencer(influencerData);
+      
+      if (influencerData) {
+        // Fetch approved campaigns for selection
+        const { data: approvedApps } = await supabase
+            .from('campaign_applications')
+            .select('campaign_id, campaigns(title)')
+            .eq('influencer_id', (influencerData as any).id)
+            .eq('status', 'approved') as any; 
+            
+        const campaigns = (approvedApps as any)?.map((app: any) => ({
+            id: app.campaign_id,
+            title: app.campaigns?.title
+        })) || [];
+        
+        setActiveCampaigns(campaigns);
+
+        // Auto-select if a query param exists OR if there's only one active campaign and we are not filtering
+        if (!selectedCampaignId && campaigns.length === 1 && !router.query.campaign) {
+             // Optional: Auto-select single campaign for convenience?
+             // Let's not force it unless they click a "Submit for Campaign" button, generic submissions might exist.
+             // But for safer UX to prevent "I forgot to select":
+             // setSelectedCampaignId(campaigns[0].id);
+        }
+      }
 
       if (influencerData) {
-        const { data: videosData } = await supabase
-          .from('video_submissions')
+        const { data: videosData } = await (supabase
+          .from('video_submissions') as any)
           .select('*, campaigns(title)')
-          .eq('influencer_id', influencerData.id)
+          .eq('influencer_id', (influencerData as any).id)
           .order('created_at', { ascending: false });
 
-        setVideos(videosData || []);
+        setVideos(videosData as any || []);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -281,6 +306,25 @@ const InfluencerVideos: React.FC = () => {
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
             />
+            
+            <div>
+              <label className="label-text">Select Campaign (Important for Payment)</label>
+              <select
+                className="input-field"
+                value={selectedCampaignId || ''}
+                onChange={(e) => setSelectedCampaignId(e.target.value || null)}
+                required // Recommend making this required if they have active campaigns? 
+                // Let's keep it optional but warned for now, or users with no campaigns can't submit generic videos.
+              >
+                 <option value="">-- General / Portfolio Video (No Payment) --</option>
+                 {activeCampaigns.map(c => (
+                     <option key={c.id} value={c.id}>Campaign: {c.title}</option>
+                 ))}
+              </select>
+              <p className="text-xs text-amber-600 mt-1">
+                  ⚠ Please select the campaign to ensure your submission is tracked for payment.
+              </p>
+            </div>
             <div>
               <label className="label-text">Description</label>
               <textarea

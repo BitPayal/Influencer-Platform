@@ -32,6 +32,7 @@ export interface Influencer {
   approval_status: ApprovalStatus;
   approved_at?: string;
   approved_by?: string;
+  video_rate?: number; // Rate per approved video (e.g., 2000-10000)
   created_at: string;
   updated_at: string;
 }
@@ -39,6 +40,7 @@ export interface Influencer {
 export interface VideoSubmission {
   id: string;
   influencer_id: string;
+  campaign_id?: string;
   task_assignment_id?: string;
   title: string;
   description: string;

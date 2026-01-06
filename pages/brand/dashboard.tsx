@@ -238,8 +238,8 @@ const BrandDashboard: React.FC = () => {
                <Button variant="secondary" onClick={() => router.push('/brand/search')} className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700">
                    Find Influencers
                </Button>
-               <Button variant="secondary" onClick={() => router.push('/admin/influencers')} className="border-indigo-200 text-indigo-600 hover:bg-indigo-50">
-                   Approve Influencers
+               <Button variant="secondary" onClick={() => router.push('/brand/campaigns')} className="border-indigo-200 text-indigo-600 hover:bg-indigo-50">
+                   Manage Campaigns
                </Button>
             </div>
         </div>
