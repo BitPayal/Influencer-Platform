@@ -1,0 +1,16 @@
+# robots.txt for Cehpoint Influence Partners
+# Optimized for West Bengal and India SEO
+
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /register/influencer
+
+Disallow: /admin/
+Disallow: /influencer/dashboard
+Disallow: /api/
+
+Sitemap: https://cehpoint-influence.repl.co/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1

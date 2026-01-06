@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+dist/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor settings
+.vscode/
+.idea/
+
+# Other
+*.pem
+
+# Local Documentation containing secrets
+TEST-CREDENTIALS.md
+WORKING-CREDENTIALS.md
+
+# Deployments
+.vercel
+
+# Testing
+coverage/
+
+# Misc
+.turbo
+

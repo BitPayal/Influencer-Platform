@@ -1,0 +1,191 @@
+Influencer Collaboration & Local Marketing Management Platform
+ 
+Project Goal:
+ 
+To create a web platform where Indian influencers can register, promote our company’s products or services within their local area or district, submit their promotional videos for approval, and receive manual UPI payments based on clear performance rules.
+ 
+Core Concept:
+ 
+A platform where influencers act as district-level brand promoters. They follow company marketing guidelines, get approval for their video content, and earn both fixed and performance-based rewards.
+ 
+Target Users:
+ 
+ 
+- Indian influencers (Instagram, YouTube, Facebook, or local reels creators)
+ 
+- Marketing team (for approval and tracking)
+ 
+- Admin (for finance, compliance, and payouts)
+ 
+
+ 
+Core Flow:
+ 
+1. Influencer Registration
+ 
+ 
+- Influencer signs up with name, phone number, email, district, and social media handles.
+ 
+- Must upload valid ID proof (Aadhaar or PAN) for verification.
+ 
+- Must enter UPI ID for receiving payments.
+ 
+- Marketing team reviews and approves registration before activation.
+ 
+
+ 
+2. Influencer Dashboard
+ 
+After approval, the influencer can:
+ 
+ 
+- See company guidelines for promotions (standard do’s & don’ts).
+ 
+- Upload a promotional video or link for approval before posting.
+ 
+- Track approval status (Pending / Approved / Rejected).
+ 
+- Once approved, post the video on their social media and upload proof (link + screenshot).
+ 
+
+ 3. Admin Panel
+ 
+Admin can:
+ 
+ 
+- View all influencer details (name, district, follower count, etc.).
+ 
+- Approve/reject videos.
+ 
+- View verified post proof (link/screenshot).
+ 
+- Mark payment as completed manually (after verifying post).
+ 
+- Export report for accounting.
+ 
+
+ 
+4. Payment Model (Manual UPI)
+ 
+ 
+- Fixed payment based on influencer’s follower count and engagement tier.
+ 
+- Payment is made manually by admin through UPI, and status is updated in the portal.
+ 
+- Influencer can view the status (Pending / Paid / Under Review).
+ 
+- No automatic payout integration initially.
+ 
+- Admin can later upgrade to automated payment gateway.
+ 
+
+ 
+5. Revenue Sharing Policy
+ 
+ 
+- Influencer earns a fixed payout after verified posting.
+ 
+- Additionally, 5% of the revenue generated from their leads or region is shared monthly.
+ 
+- To stay eligible for ongoing revenue share, influencer must post at least two approved videos per month.
+ 
+
+ 
+6. Promotion Guidelines
+ 
+Influencers must:
+ 
+ 
+- Follow approved script, captions, and tone for brand consistency.
+ 
+- Clearly mention local contact or service link (if provided).
+ 
+- Follow 30 Days No Delete Policy (video must remain public for 30 days).
+ 
+- Avoid political, religious, or controversial content in posts.
+ 
+- Post within their district/locality focus area.
+ 
+
+ 
+7. District-Wise Marketing Approach
+ 
+ 
+- Every influencer is assigned a district or region in India.
+ 
+- They act as the local face of the company in that area.
+ 
+- Admin can monitor marketing coverage district-wise.
+ 
+- Performance analytics can be tracked regionally in the dashboard.
+ 
+
+ 
+8. Admin & Marketing Team Workflow
+ 
+ 
+1. Marketing team reviews new influencer applications.
+ 
+2. Admin approves verified influencers.
+ 
+3. Influencers upload videos for approval.
+ 
+4. Marketing team checks alignment with brand policy.
+ 
+5. Admin approves and releases manual payment after verification.
+ 
+6. Monthly revenue sharing is calculated and updated.
+ 
+
+ 
+9. Reports & Insights
+ 
+ 
+- Total influencers by state/district.
+ 
+- Total approved vs rejected videos.
+ 
+- Total payout amount.
+ 
+- Regional engagement performance.
+ 
+- Influencers with long-term eligibility (2+ videos/month).
+ 
+
+ 
+
+10. Development Instructions for Team
+ 
+ 
+- Use Supabase as backend (authentication, storage, and database).
+ 
+- Deploy frontend on Vercel (responsive and mobile-friendly).
+ 
+- Keep admin and influencer dashboards separate (simple login roles).
+ 
+- Start with manual UPI payout tracking (no automation).
+ 
+- Allow export (CSV/Excel) of influencer details and payment logs.
+ 
+- Optional: Add “District Coverage Map” in admin panel later.
+ 
+- Ensure secure login and data protection for influencer details.
+ 
+
+ 
+Expected Deliverable (Phase 1):
+ 
+ 
+- Influencer registration and login system
+ 
+- Admin approval dashboard
+ 
+- Video upload and approval flow
+ 
+- Manual payment tracking
+ 
+- UPI details submission
+ 
+- District-wise influencer tagging
+ 
+- Policy display and digital acceptance
