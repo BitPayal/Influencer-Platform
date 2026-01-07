@@ -10,6 +10,9 @@ import { Campaign, CampaignApplication, VideoSubmission, Influencer, FollowerBan
 
 type Tab = 'overview' | 'applications' | 'submissions';
 
+import { Modal } from '@/components/ui/Modal';
+import { Input } from '@/components/ui/Input';
+
 const CampaignDetailsPage = () => {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
@@ -20,6 +23,12 @@ const CampaignDetailsPage = () => {
     const [applications, setApplications] = useState<(CampaignApplication & { influencer: Influencer })[]>([]);
     const [videoSubmissions, setVideoSubmissions] = useState<(VideoSubmission & { influencer: Influencer })[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Approval Modal State
+    const [selectedVideo, setSelectedVideo] = useState<(VideoSubmission & { influencer: Influencer }) | null>(null);
+    const [paymentRate, setPaymentRate] = useState<string>('0');
+    const [txnId, setTxnId] = useState<string>('');
+    const [isProcessing, setIsProcessing] = useState(false);
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -55,7 +64,6 @@ const CampaignDetailsPage = () => {
             setApplications(apps || []);
 
             // 3. Fetch Video Submissions
-            // Smart Fetch: Get videos linked to campaign OR unlinked videos from approved influencers
             let query = supabase
                 .from('video_submissions')
                 .select('*, influencer:influencers(*)')
@@ -66,7 +74,6 @@ const CampaignDetailsPage = () => {
                 .map(app => app.influencer_id) || [];
 
             if (approvedInfluencerIds.length > 0) {
-                // Fetch videos for this campaign OR (unlinked AND from approved influencers)
                 query = query.or(`campaign_id.eq.${id},and(campaign_id.is.null,influencer_id.in.(${approvedInfluencerIds.join(',')}))`);
             } else {
                 query = query.eq('campaign_id', id);
@@ -92,7 +99,7 @@ const CampaignDetailsPage = () => {
                 .eq('id', appId);
 
             if (error) throw error;
-            fetchCampaignDetails(); // Refresh
+            fetchCampaignDetails();
         } catch (error) {
             alert('Error approving application');
         }
@@ -112,48 +119,82 @@ const CampaignDetailsPage = () => {
         }
     };
 
-    const handleApproveVideo = async (video: VideoSubmission & { influencer: Influencer }) => {
-        if (video.approval_status === 'approved') return;
-        
-        try {
-            const rate = video.influencer?.video_rate || 0;
+    const initiateApproval = (video: VideoSubmission & { influencer: Influencer }) => {
+        setSelectedVideo(video);
+        setPaymentRate(video.influencer?.video_rate?.toString() || '0');
+        setTxnId('');
+    };
 
-            // 1. Approve Video
+    const confirmApproval = async () => {
+        if (!selectedVideo) return;
+        setIsProcessing(true);
+
+        try {
+            const finalRate = parseFloat(paymentRate) || 0;
+
+            // 1. Update Influencer Rate (Dynamic Pricing)
+            if (finalRate !== selectedVideo.influencer?.video_rate) {
+                 const { error: rateError } = await (supabase
+                    .from('influencers') as any)
+                    .update({ video_rate: finalRate })
+                    .eq('id', selectedVideo.influencer_id);
+                
+                if (rateError) throw new Error("Failed to update influencer rate: " + rateError.message);
+            }
+
+            // 2. Approve Video
             const { error: videoError } = await (supabase
                 .from('video_submissions') as any)
                 .update({ approval_status: 'approved', reviewed_at: new Date().toISOString() })
-                .eq('id', video.id);
+                .eq('id', selectedVideo.id);
 
             if (videoError) throw videoError;
 
-            // 2. Create Payment Record (if rate > 0)
-            if (rate > 0) {
+            // 3. Create Payment (if rate > 0)
+            if (finalRate > 0) {
+                const status = txnId ? 'paid' : 'pending';
+                const notes = txnId 
+                    ? `Paid via UPI (Txn: ${txnId}) for video: ${selectedVideo?.title}`
+                    : `Fixed payment for video: ${selectedVideo?.title} (Brand Approved)`;
+
                 const { error: paymentError } = await supabase.from('payments' as any).insert({
-                    influencer_id: video.influencer_id,
-                    video_submission_id: video.id,
-                    amount: rate,
+                    influencer_id: selectedVideo.influencer_id,
+                    video_submission_id: selectedVideo.id,
+                    amount: finalRate,
                     payment_type: 'fixed',
-                    payment_status: 'pending',
-                    notes: `Fixed payment for video: ${video.title} (Brand Approved)`
+                    status: status,
+                    upi_transaction_id: txnId || null,
+                    paid_at: txnId ? new Date().toISOString() : null, 
+                    notes: notes
                 } as any);
 
                 if (paymentError) {
                      console.error("Error creating payment:", paymentError);
-                     // Don't throw, just warn, as video is approved.
                      alert("Video approved but failed to create payment record.");
+                } else {
+                    alert(`Video Approved! Payment recorded as ${status.toUpperCase()}.`);
                 }
+            } else {
+                alert("Video Approved! No payment recorded (rate is 0).");
             }
 
-            fetchCampaignDetails();
-            alert("Video Approved Successfully!");
+            setSelectedVideo(null);
+            await fetchCampaignDetails();
+            
         } catch (error: any) {
             console.error(error);
             alert(error.message || 'Error approving video');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
     if (loading) return <div className="p-8 text-center">Loading...</div>;
     if (!campaign) return <div className="p-8 text-center">Campaign not found</div>;
+
+    const qrUrl = selectedVideo?.influencer?.upi_id && paymentRate 
+        ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=${selectedVideo.influencer.upi_id}&pn=${encodeURIComponent(selectedVideo.influencer.full_name)}&am=${paymentRate}&cu=INR`
+        : null;
 
     return (
         <Layout>
@@ -223,10 +264,25 @@ const CampaignDetailsPage = () => {
                         <p className="text-gray-500">No videos submitted yet.</p>
                     ) : (
                         <div className="grid md:grid-cols-2 gap-6">
-                            {videoSubmissions.map(video => (
+                            {videoSubmissions.map(video => {
+                                const embedUrl = (() => {
+                                    if (!video.video_url) return null;
+                                    const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|shorts\/)|youtu\.be\/)([^"&?\/\s]{11})/;
+                                    const match = video.video_url.match(youtubeRegex);
+                                    return match && match[1] ? `https://www.youtube.com/embed/${match[1]}` : null;
+                                })();
+
+                                return (
                                 <div key={video.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                                     <div className="aspect-video bg-gray-100 rounded-lg mb-4 flex items-center justify-center relative overflow-hidden group">
-                                         {video.video_url ? (
+                                         {embedUrl ? (
+                                             <iframe 
+                                                src={embedUrl} 
+                                                className="w-full h-full" 
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                                allowFullScreen
+                                             />
+                                         ) : video.video_url ? (
                                             <video src={video.video_url} controls className="w-full h-full object-cover" />
                                          ) : (
                                              <VideoIcon className="h-12 w-12 text-gray-300" />
@@ -238,22 +294,29 @@ const CampaignDetailsPage = () => {
                                     
                                     <div className="flex justify-between items-center mt-4">
                                         <div className="flex items-center gap-2">
-                                            <span className={`px-2 py-1 rounded-md text-xs font-semibold ${
-                                                video.approval_status === 'approved' ? 'bg-green-100 text-green-700' :
-                                                video.approval_status === 'rejected' ? 'bg-red-100 text-red-700' :
-                                                'bg-yellow-100 text-yellow-700'
-                                            }`}>
-                                                {video.approval_status?.toUpperCase() || 'PENDING'}
-                                            </span>
+                                            {video.approval_status && video.approval_status !== 'pending' && (
+                                                <span className={`px-2 py-1 rounded-md text-xs font-semibold ${
+                                                    video.approval_status === 'approved' ? 'bg-green-100 text-green-700' :
+                                                    video.approval_status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                                    'bg-yellow-100 text-yellow-700'
+                                                }`}>
+                                                    {video.approval_status?.toUpperCase()}
+                                                </span>
+                                            )}
+                                            {video.approval_status === 'approved' && video.influencer?.video_rate && (
+                                                <span className="text-xs text-gray-500">
+                                                    (Paid: ₹{video.influencer.video_rate})
+                                                </span>
+                                            )}
                                         </div>
                                         {video.approval_status !== 'approved' && (
-                                            <Button onClick={() => handleApproveVideo(video)}>
+                                            <Button onClick={() => initiateApproval(video)}>
                                                 Approve & Pay
                                             </Button>
                                         )}
                                     </div>
                                 </div>
-                            ))}
+                            )})}
                         </div>
                     )}
                 </div>
@@ -263,6 +326,92 @@ const CampaignDetailsPage = () => {
                 <div>Stats placeholder</div>
             )}
 
+            {/* Approval Modal */}
+            <Modal
+                isOpen={!!selectedVideo}
+                onClose={() => setSelectedVideo(null)}
+                title="Approve & Pay (UPI)"
+            >
+                <div className="space-y-6">
+                    {/* Header */}
+                    <div className="bg-blue-50 p-4 rounded-lg text-blue-800 text-sm">
+                         <div className="flex justify-between">
+                            <span className="font-semibold">Reviewing: {selectedVideo?.title}</span>
+                            <span>{new Date().toLocaleDateString()}</span>
+                         </div>
+                        <p className="mt-1">Creator: {selectedVideo?.influencer?.full_name}</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Left: Rate Setting */}
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-1">
+                                1. Set Payment Amount (₹)
+                            </label>
+                            <Input 
+                                type="number" 
+                                value={paymentRate} 
+                                onChange={(e) => setPaymentRate(e.target.value)}
+                                min="0"
+                                className="font-bold text-lg"
+                            />
+                            <p className="text-xs text-gray-500 mt-2">
+                                Changing this updates the influencer's global rate for future videos.
+                            </p>
+                        </div>
+
+                        {/* Right: QR Code */}
+                        <div className="flex flex-col items-center justify-center border-l border-gray-100 pl-6">
+                             {qrUrl ? (
+                                <>
+                                    <div className="bg-white p-2 border border-gray-200 rounded-lg shadow-sm">
+                                        <img src={qrUrl} alt="UPI QR Code" className="w-32 h-32" />
+                                    </div>
+                                    <span className="text-xs text-gray-400 mt-2 font-mono">
+                                        {selectedVideo?.influencer?.upi_id}
+                                    </span>
+                                    <span className="text-xs text-indigo-600 font-semibold mt-1">
+                                        Scan to Pay ₹{paymentRate}
+                                    </span>
+                                </>
+                             ) : (
+                                 <div className="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-xs text-center p-2">
+                                     {selectedVideo?.influencer?.upi_id ? 'Enter amount to generate QR' : 'Influencer has no UPI ID'}
+                                 </div>
+                             )}
+                        </div>
+                    </div>
+
+                    {/* Transaction Input */}
+                    <div className="border-t border-gray-100 pt-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            2. Transaction ID (Optional)
+                        </label>
+                         <p className="text-xs text-gray-500 mb-2">
+                            Enter the UPI Reference ID after paying. If left blank, payment is marked as <strong>Pending</strong>.
+                        </p>
+                        <Input 
+                            placeholder="e.g. 3214XXXXXXXX"
+                            value={txnId}
+                            onChange={(e) => setTxnId(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="flex justify-end gap-3 mt-4">
+                        <Button variant="secondary" onClick={() => setSelectedVideo(null)}>
+                            Cancel
+                        </Button>
+                        <Button 
+                            variant="primary" 
+                            onClick={confirmApproval} 
+                            isLoading={isProcessing}
+                            className={txnId ? "bg-green-600 hover:bg-green-700" : "bg-indigo-600 hover:bg-indigo-700"}
+                        >
+                            {txnId ? "Confirm Paid & Approve" : "Approve (Pay Later)"}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </Layout>
     );
 };

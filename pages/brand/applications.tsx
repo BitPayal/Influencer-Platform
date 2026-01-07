@@ -120,6 +120,19 @@ const BrandApplicationsPage = () => {
 
     const handleAction = async (appId: string, action: 'approved' | 'rejected') => {
         try {
+            const app = applications.find(a => a.id === appId);
+            if (!app) return;
+
+            // If approving, update the influencer's video_rate based on bid
+            if (action === 'approved' && app.bid_amount) {
+                const { error: rateError } = await (supabase
+                    .from('influencers') as any)
+                    .update({ video_rate: app.bid_amount })
+                    .eq('id', app.influencer_id);
+                
+                if (rateError) console.error("Error setting video rate:", rateError);
+            }
+
             // Optimistic update could be done here, but let's stick to safe confirm
             const updatePromise = (supabase
                 .from('campaign_applications') as any)

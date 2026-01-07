@@ -133,10 +133,36 @@ const BrandDashboard: React.FC = () => {
               applicationCount = count || 0;
           }
 
+
+          // Total Spent Calculation
+          let totalSpent = 0;
+          if (campaignIds.length > 0) {
+                // 1. Get all video submissions for these campaigns
+                const { data: videos } = await supabase
+                    .from('video_submissions')
+                    .select('id')
+                    .in('campaign_id', campaignIds);
+                
+                const videoIds = videos?.map((v: any) => v.id) || [];
+
+                if (videoIds.length > 0) {
+                    // 2. Get all PAID payments for these videos
+                    const { data: payments } = await supabase
+                        .from('payments')
+                        .select('amount')
+                        .in('video_submission_id', videoIds)
+                        .eq('status', 'paid');
+                    
+                    if (payments) {
+                        totalSpent = (payments as any[]).reduce((sum, p) => sum + (p.amount || 0), 0);
+                    }
+                }
+          }
+
           setStats({
               activeCampaigns: campaignCount || 0,
               pendingApplications: applicationCount,
-              totalSpent: 0 // Placeholder for now
+              totalSpent: totalSpent
           });
 
       } catch (error) {
@@ -147,26 +173,36 @@ const BrandDashboard: React.FC = () => {
 
   if (authLoading || loading) {
       return (
-          <div className="flex flex-col justify-center items-center min-h-screen bg-gray-50">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-              <p className="text-gray-500 font-medium">Loading Dashboard...</p>
-          </div>
+          <Layout>
+              <Head>
+                <title>Brand Dashboard - Cehpoint</title>
+              </Head>
+              <div className="flex flex-col justify-center items-center h-[calc(100vh-100px)]">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+                  <p className="text-gray-500 font-medium">Loading Dashboard...</p>
+              </div>
+          </Layout>
       );
   }
 
   if (error) {
       return (
-          <div className="flex flex-col justify-center items-center min-h-screen bg-gray-50 p-4">
-              <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
-                  <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">Something went wrong</h2>
-                  <p className="text-gray-600 mb-6">{error}</p>
-                  <Button onClick={loadDashboardData} variant="primary" className="w-full">
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Retry
-                  </Button>
+          <Layout>
+              <Head>
+                <title>Brand Dashboard - Cehpoint</title>
+              </Head>
+              <div className="flex flex-col justify-center items-center h-[calc(100vh-100px)] p-4">
+                  <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+                      <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                      <h2 className="text-xl font-bold text-gray-900 mb-2">Something went wrong</h2>
+                      <p className="text-gray-600 mb-6">{error}</p>
+                      <Button onClick={loadDashboardData} variant="primary" className="w-full">
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Retry
+                      </Button>
+                  </div>
               </div>
-          </div>
+          </Layout>
       );
   }
 

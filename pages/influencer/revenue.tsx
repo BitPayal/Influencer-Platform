@@ -1,266 +1,177 @@
 import React, { useState, useEffect } from 'react';
-import { Layout } from '@/components/Layout';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Table } from '@/components/ui/Table';
-import { supabase } from '@/lib/supabase';
-import { RevenueShare, FollowerBand } from '@/types';
-import { DollarSign, TrendingUp, Award, Calendar } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
+import { Layout } from '@/components/Layout';
+import { Loader2, DollarSign, Calendar, CheckCircle, Clock } from 'lucide-react';
+import { Payment } from '@/types';
 
 const InfluencerRevenuePage = () => {
-  const { user } = useAuth();
-  const router = useRouter();
-  const [revenues, setRevenues] = useState<RevenueShare[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [followerBand, setFollowerBand] = useState<FollowerBand>('0-5k');
-  const [videoRate, setVideoRate] = useState<number>(0);
+    const { user, loading: authLoading } = useAuth();
+    const router = useRouter();
+    const [payments, setPayments] = useState<Payment[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState({
+        totalEarned: 0,
+        pending: 0,
+        paid: 0
+    });
 
-  useEffect(() => {
-    if (user === undefined) return; // Wait for auth to load
-    if (user === null) {
-      router.push('/login');
-      return;
-    }
-    if (user.role === 'admin') {
-      router.push('/admin/dashboard');
-      return;
-    }
-    fetchRevenueData();
-  }, [user]);
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/login');
+            return;
+        }
+        if (user) {
+            fetchEarnings();
+        }
+    }, [user, authLoading]);
 
-  const fetchRevenueData = async () => {
-    try {
-      const { data } = await supabase
-        .from('influencers')
-        .select('id, follower_count, video_rate')
-        .eq('user_id', user?.id)
-        .single();
+    const fetchEarnings = async () => {
+        try {
+            // 1. Get Influencer ID
+            const { data: influencer } = await supabase
+                .from('influencers')
+                .select('id')
+                .eq('user_id', user?.id)
+                .single();
 
-      const influencerData = data as any;
+            if (!influencer) return;
 
-      if (!influencerData) return;
+            // 2. Fetch Payments
+            const { data: paymentsData, error } = await supabase
+                .from('payments')
+                .select('*')
+                .eq('influencer_id', influencer.id)
+                .order('created_at', { ascending: false });
 
-      const band = getFollowerBand(influencerData.follower_count);
-      setFollowerBand(band);
-      setVideoRate(influencerData.video_rate || 0);
+            if (error) throw error;
 
-      const { data: revenueSharesData, error } = await supabase
-        .from('revenue_shares')
-        .select('*')
-        .eq('influencer_id', influencerData.id)
-        .order('year', { ascending: false })
-        .order('month', { ascending: false });
+            const typedPayments = (paymentsData || []) as Payment[];
+            setPayments(typedPayments);
 
-      if (error) throw error;
-      setRevenues(revenueSharesData || []);
-    } catch (error) {
-      console.error('Error fetching revenue data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+            // 3. Calculate Stats
+            const total = typedPayments.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+            const pending = typedPayments.filter(p => p.status === 'pending').reduce((acc, curr) => acc + (curr.amount || 0), 0);
+            const paid = typedPayments.filter(p => p.status === 'paid').reduce((acc, curr) => acc + (curr.amount || 0), 0);
 
-  const getFollowerBand = (count: number): FollowerBand => {
-    if (count >= 100000) return '100k+';
-    if (count >= 25000) return '25k-100k';
-    if (count >= 5000) return '5k-25k';
-    return '0-5k';
-  };
+            setStats({ totalEarned: total, pending, paid });
 
-  const getPayoutForBand = (band: FollowerBand): number => {
-    switch (band) {
-      case '100k+':
-        return 10000;
-      case '25k-100k':
-        return 7000;
-      case '5k-25k':
-        return 4000;
-      default:
-        return 2000;
-    }
-  };
+        } catch (error) {
+            console.error("Error fetching earnings:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const totalEarnings = revenues.reduce((sum, r) => sum + r.total_earning, 0);
-  const totalFixed = revenues.reduce((sum, r) => sum + r.fixed_payout, 0);
-  const totalPerformance = revenues.reduce((sum, r) => sum + r.performance_share_amount, 0);
-  const currentMonthRevenue = revenues.find(
-    (r) =>
-      r.month === new Date().toLocaleString('default', { month: 'long' }) &&
-      r.year === new Date().getFullYear()
-  );
-
-  if (loading) {
-    return (
-      <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-gray-600">Loading revenue data...</div>
-        </div>
-      </Layout>
+    if (loading) return (
+        <Layout>
+            <div className="flex justify-center items-center h-screen">
+                <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+            </div>
+        </Layout>
     );
-  }
 
-  return (
-    <Layout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Revenue Dashboard</h1>
-          <p className="text-gray-600 mt-1">Track your earnings and performance bonuses</p>
-        </div>
+    return (
+        <Layout>
+            <Head>
+                <title>My Earnings - Cehpoint</title>
+            </Head>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100">
-            <div className="flex items-center">
-              <div className="bg-blue-600 p-3 rounded-lg">
-                <DollarSign className="h-6 w-6 text-white" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm text-gray-700">Total Earnings</p>
-                <p className="text-2xl font-bold text-gray-900">₹{totalEarnings.toLocaleString()}</p>
-              </div>
-            </div>
-          </Card>
+            <div className="max-w-5xl mx-auto space-y-8 animate-fade-in pb-12">
+                <div>
+                    <h1 className="text-3xl font-extrabold text-gray-900">Earnings & Payments</h1>
+                    <p className="mt-2 text-lg text-gray-600">Track your video approvals and revenue.</p>
+                </div>
 
-          <Card className="bg-gradient-to-br from-green-50 to-green-100">
-            <div className="flex items-center">
-              <div className="bg-green-600 p-3 rounded-lg">
-                <Award className="h-6 w-6 text-white" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm text-gray-700">Fixed Payouts</p>
-                <p className="text-2xl font-bold text-gray-900">₹{totalFixed.toLocaleString()}</p>
-              </div>
-            </div>
-          </Card>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-gray-500 font-medium">Total Earnings</h3>
+                            <DollarSign className="h-6 w-6 text-indigo-600 bg-indigo-50 p-1 rounded-full" />
+                        </div>
+                        <p className="text-3xl font-bold text-gray-900">₹{stats.totalEarned.toLocaleString()}</p>
+                    </div>
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-gray-500 font-medium">Pending Payout</h3>
+                            <Clock className="h-6 w-6 text-amber-600 bg-amber-50 p-1 rounded-full" />
+                        </div>
+                        <p className="text-3xl font-bold text-amber-600">₹{stats.pending.toLocaleString()}</p>
+                    </div>
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-gray-500 font-medium">Paid Out</h3>
+                            <CheckCircle className="h-6 w-6 text-green-600 bg-green-50 p-1 rounded-full" />
+                        </div>
+                        <p className="text-3xl font-bold text-green-600">₹{stats.paid.toLocaleString()}</p>
+                    </div>
+                </div>
 
-          <Card className="bg-gradient-to-br from-purple-50 to-purple-100">
-            <div className="flex items-center">
-              <div className="bg-purple-600 p-3 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-white" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm text-gray-700">Performance Bonus</p>
-                <p className="text-2xl font-bold text-gray-900">₹{totalPerformance.toLocaleString()}</p>
-              </div>
+                {/* Transactions List */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="p-6 border-b border-gray-100">
+                        <h2 className="text-lg font-bold text-gray-900">Payment History</h2>
+                    </div>
+                    
+                    {payments.length === 0 ? (
+                        <div className="p-12 text-center text-gray-500">
+                            No payment records found. Start submitting videos to earn!
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                                    <tr>
+                                        <th className="px-6 py-4 font-semibold">Date</th>
+                                        <th className="px-6 py-4 font-semibold">Description</th>
+                                        <th className="px-6 py-4 font-semibold">Transaction ID</th>
+                                        <th className="px-6 py-4 font-semibold">Type</th>
+                                        <th className="px-6 py-4 font-semibold">Status</th>
+                                        <th className="px-6 py-4 font-semibold text-right">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {payments.map((payment) => (
+                                        <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                {new Date(payment.created_at).toLocaleDateString()}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-900 font-medium">
+                                                {payment.notes || 'Video Submission Payment'}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-600 font-mono">
+                                                {payment.upi_transaction_id || '-'}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                                <span className="capitalize bg-gray-100 text-gray-700 px-2 py-1 rounded-md text-xs">
+                                                    {payment.payment_type}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                                    payment.status === 'paid' ? 'bg-green-100 text-green-700' :
+                                                    payment.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                                    'bg-gray-100 text-gray-700'
+                                                }`}>
+                                                    {payment.status?.toUpperCase() || 'PENDING'}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
+                                                ₹{payment.amount.toLocaleString()}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             </div>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-orange-50 to-orange-100">
-            <div className="flex items-center">
-              <div className="bg-orange-600 p-3 rounded-lg">
-                <Calendar className="h-6 w-6 text-white" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm text-gray-700">This Month</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  ₹{currentMonthRevenue?.total_earning.toLocaleString() || '0'}
-                </p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
-          <h3 className="text-lg font-bold text-gray-900 mb-3">Your Revenue Tier</h3>
-          <div className="flex items-center justify-between">
-            <div>
-              <Badge variant="success" className="text-lg px-4 py-2">
-                {followerBand} Followers
-              </Badge>
-              <p className="text-gray-700 mt-2">
-                Base payout: <span className="font-bold">₹{(videoRate || getPayoutForBand(followerBand)).toLocaleString()}</span> per
-                approved video
-              </p>
-              <p className="text-sm text-gray-600 mt-1">+ 5% revenue share from generated leads</p>
-            </div>
-            <div className="text-right">
-              <div className="text-3xl font-bold text-indigo-600">
-                ₹{(videoRate || getPayoutForBand(followerBand)).toLocaleString()}
-              </div>
-              <p className="text-sm text-gray-600">per video</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Revenue History</h3>
-          {revenues.length === 0 ? (
-            <div className="text-center py-8 text-gray-600">
-              No revenue history yet. Complete tasks to start earning!
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Period</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                      Videos Approved
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                      Fixed Payout
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                      Performance Share
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                      Total Earning
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {revenues.map((revenue) => (
-                    <tr key={revenue.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-900">
-                        {revenue.month} {revenue.year}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-900">{revenue.videos_approved}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">
-                        ₹{revenue.fixed_payout.toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-900">
-                        ₹{revenue.performance_share_amount.toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 text-sm font-semibold text-gray-900">
-                        ₹{revenue.total_earning.toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <Badge
-                          variant={
-                            revenue.payment_status === 'paid'
-                              ? 'success'
-                              : revenue.payment_status === 'calculated'
-                              ? 'info'
-                              : 'warning'
-                          }
-                        >
-                          {revenue.payment_status}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </Card>
-
-        <Card className="bg-blue-50 border-blue-200">
-          <h3 className="text-lg font-bold text-gray-900 mb-2">💡 Maximize Your Earnings</h3>
-          <ul className="space-y-2 text-gray-700">
-            <li>✓ Complete 2 tasks per month to earn fixed payouts</li>
-            <li>✓ Generate quality leads to unlock 5% performance bonuses</li>
-            <li>✓ Grow your followers to increase your base payout tier</li>
-            <li>✓ Create authentic, engaging content that drives action</li>
-          </ul>
-        </Card>
-      </div>
-    </Layout>
-  );
+        </Layout>
+    );
 };
 
 export default InfluencerRevenuePage;

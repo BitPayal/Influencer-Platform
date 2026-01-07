@@ -154,7 +154,7 @@ console.log('Authenticated User ID:', userId);
     id: userId,
     email: formData.email,
     role: 'influencer',
-  }, { onConflict: 'id', ignoreDuplicates: true });
+  } as any, { onConflict: 'id', ignoreDuplicates: true });
 
   const { error: userError } = await Promise.race([
       upsertUserPromise,
@@ -189,7 +189,7 @@ const insertInfluencerPromise = supabase
     id_proof_url: uploadedIdProofUrl,
     upi_id: formData.upiId,
     approval_status: 'pending',
-  });
+  } as any);
 
 const { error: influencerError } = await Promise.race([
     insertInfluencerPromise,

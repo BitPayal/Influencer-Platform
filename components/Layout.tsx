@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import {
@@ -22,6 +23,61 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, signOut } = useAuth();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const [profileName, setProfileName] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const fetchProfileName = async () => {
+      if (!user) return;
+      
+      console.log("Layout: Fetching profile for user:", user.id, "Role:", user.role);
+
+      try {
+        if (user.role === 'marketing') {
+           console.log("Layout: Attempting to fetch brand profile...");
+           const { data, error } = await supabase
+            .from('brands')
+            .select('company_name')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+            console.log("Layout: Brand fetch result:", { data, error });
+
+            if (error) {
+              console.error('Error fetching brand profile:', error);
+            } else if (data) {
+              console.log("Layout: Setting profile name to:", (data as any).company_name);
+              setProfileName((data as any).company_name);
+            } else {
+                console.warn("Layout: No brand profile found for user");
+            }
+        } else if (user.role === 'influencer') {
+           console.log("Layout: Attempting to fetch influencer profile...");
+           const { data, error } = await supabase
+            .from('influencers')
+            .select('full_name')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+            console.log("Layout: Influencer fetch result:", { data, error });
+
+            if (error) {
+              console.error('Error fetching influencer profile:', error);
+            } else if (data) {
+              console.log("Layout: Setting profile name to:", (data as any).full_name);
+              setProfileName((data as any).full_name);
+            } else {
+                console.warn("Layout: No influencer profile found for user");
+            }
+        } else {
+            console.log("Layout: User role not recognized for profile fetch:", user.role);
+        }
+      } catch (error) {
+        console.error("Error fetching profile name:", error);
+      }
+    };
+
+    fetchProfileName();
+  }, [user]);
 
   const handleSignOut = async () => {
     try {
@@ -78,7 +134,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">{user?.email}</span>
+              <span className="text-sm text-gray-700 font-medium">
+                {profileName || user?.email}
+              </span>
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out

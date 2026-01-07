@@ -299,176 +299,169 @@ const CreateCampaign: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gray-50/50">
       <Head>
         <title>Create Campaign - Cehpoint</title>
       </Head>
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white p-8 rounded-lg shadow">
-            <div className="flex items-center gap-3 mb-6">
-                <Button variant="ghost" className="p-0 hover:bg-transparent" onClick={() => router.back()}>
-                    &larr; Back
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                 <Button variant="ghost" className="p-2 -ml-2 text-gray-500 hover:text-gray-900" onClick={() => router.back()}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                 </Button>
-                <h1 className="text-2xl font-bold text-gray-900">Create New Campaign</h1>
-            </div>
-            
-            {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
-                    <AlertCircle className="h-5 w-5 flex-shrink-0" />
-                    <span>{error}</span>
+                <div className="h-6 w-px bg-gray-200 mx-2 hidden sm:block"></div>
+                <h1 className="text-xl font-semibold text-gray-900">Create New Campaign</h1>
+              </div>
+          </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        
+        <div className="flex flex-col md:flex-row gap-8 items-start">
+             {/* Left Column: Context/Help */}
+             <div className="w-full md:w-1/3 space-y-6">
+                <div>
+                     <h2 className="text-lg font-medium text-gray-900">Campaign Details</h2>
+                     <p className="text-sm text-gray-500 mt-1">Provide clear instructions to help influencers understand your goals.</p>
                 </div>
-            )}
-            
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <Input
-                    id="title"
-                    name="title"
-                    label="Campaign Title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    required
-                    placeholder="e.g. Summer Collection Launch"
-                />
                 
-                <div className="flex flex-col gap-1.5">
-                    <label htmlFor="description" className="text-sm font-medium text-gray-700">Description</label>
-                    <textarea
-                        id="description"
-                        name="description"
-                        className="flex min-h-[100px] w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        value={formData.description}
-                        onChange={handleChange}
-                        required
-                        placeholder="Describe your campaign goals and what you're promoting..."
-                    />
+                <div className="bg-indigo-50 rounded-lg p-5 border border-indigo-100">
+                    <h3 className="text-sm font-semibold text-indigo-900 mb-2">Tips for a great campaign</h3>
+                    <ul className="text-sm text-indigo-800 space-y-2 list-disc list-inside">
+                        <li>Be specific about the deliverables.</li>
+                        <li>Set a realistic budget for your requirements.</li>
+                        <li>Provide visual examples if possible in the description.</li>
+                    </ul>
                 </div>
+             </div>
 
-                <div className="flex flex-col gap-1.5">
-                    <label htmlFor="requirements" className="text-sm font-medium text-gray-700">Requirements</label>
-                    <textarea
-                        id="requirements"
-                        name="requirements"
-                        className="flex min-h-[80px] w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        value={formData.requirements}
-                        onChange={handleChange}
-                        placeholder="e.g. Must have 10k+ followers, Post 1 Reel and 1 Story"
-                    />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                        id="budget"
-                        name="budget"
-                        label="Budget (₹)"
-                        type="number"
-                        value={formData.budget}
-                        onChange={handleChange}
-                        required
-                        placeholder="5000"
-                    />
-                    <Input
-                        id="deadline"
-                        name="deadline"
-                        label="Deadline"
-                        type="date"
-                        value={formData.deadline}
-                        onChange={handleChange}
-                    />
-                </div>
-
-                <div className="flex justify-between gap-4 pt-4">
-                     <Button type="button" variant="secondary" onClick={async () => {
-                        console.log("Debug: Checking Campaign Insert...");
-                        const { data: { user }, error: authError } = await supabase.auth.getUser();
-                        
-                        if (!user) {
-                            alert("No user!");
-                            return;
-                        }
-
-                        let log = [`User: ${user.id}`];
-                        let brandIdToUse = null;
-
-                        // 1. Fetch Brand
-                        const { data: brand, error: fetchErr } = await supabase
-                            .from('brands')
-                            .select('id')
-                            .eq('user_id', user.id)
-                            .limit(1)
-                            .maybeSingle();
-                        
-                        if (fetchErr) log.push(`Fetch Brand Err: ${fetchErr.message}`);
-                        
-                        if (brand) {
-                            brandIdToUse = (brand as any).id;
-                            log.push(`Found Brand: ${(brand as any).id}`);
-                        } else {
-                            log.push("No Brand Found. Creating one...");
-                            const newId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `brand-${Date.now()}`;
-                            const { error: createErr } = await (supabase.from('brands') as any).insert({
-                                id: newId,
-                                user_id: user.id,
-                                company_name: "Debug Brand " + newId.substr(0,4),
-                                created_at: new Date().toISOString(),
-                                updated_at: new Date().toISOString()
-                            }).select();
-
-                            if (createErr) {
-                                log.push(`Create Brand Failed: ${createErr.message}`);
-                            } else {
-                                brandIdToUse = newId;
-                                log.push(`Created Brand: ${newId}`);
-                            }
-                        }
-
-                        // 2. Insert Campaign
-                        if (brandIdToUse) {
-                            log.push("Attempting Campaign Insert (Long Text)...");
-                            const longText = "This is a very long description text to test if the network or database blocks larger payloads. ".repeat(20);
-                            const { data: camp, error: campErr } = await (supabase.from('campaigns') as any).insert({
-                                brand_id: brandIdToUse,
-                                title: "Debug Long " + Date.now(),
-                                description: longText,
-                                requirements: "Debug Req",
-                                budget: 100,
-                                deadline: new Date().toISOString(),
-                                status: 'active',
-                                created_at: new Date().toISOString(),
-                                updated_at: new Date().toISOString()
-                            }).select();
-
-                            if (campErr) {
-                                log.push(`Campaign Insert FAILED: ${campErr.message} (Code: ${campErr.code})`);
-                            } else {
-                                log.push("Campaign Insert SUCCESS!");
-                                // check if we got data back
-                                if (camp) log.push("Data returned OK.");
-                                else log.push("No data returned (but no error).");
-                            }
-                        } else {
-                            log.push("Skipping Campaign Insert (No Brand ID).");
-                        }
-
-                        alert(log.join('\n'));
-                    }}>
-                        Debug Campaign
-                    </Button>
-                    <div className="flex gap-4">
-                        <Button type="button" variant="secondary" onClick={() => router.back()}>Cancel</Button>
-                        <Button type="submit" variant="primary" disabled={loading}>
-                            {loading ? (
-                                <>
-                                    <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                                    {loadingStatus || 'Creating...'}
-                                </>
-                            ) : (
-                                'Post Campaign'
-                            )}
-                        </Button>
+             {/* Right Column: Form */}
+             <div className="w-full md:w-2/3">
+                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    {/* Progress Bar (Decorative) */}
+                    <div className="h-1 bg-gray-100 w-full">
+                       <div className="h-full bg-indigo-600 w-1/3"></div>
                     </div>
-                </div>
-            </form>
+
+                    <div className="p-6 md:p-8">
+                         {error && (
+                            <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-lg flex items-start gap-3 text-red-700">
+                                <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                                <div className="text-sm">
+                                    <span className="font-semibold block">Error</span>
+                                    {error}
+                                </div>
+                            </div>
+                        )}
+
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="space-y-5">
+                                <Input
+                                    id="title"
+                                    name="title"
+                                    label="Campaign Title"
+                                    value={formData.title}
+                                    onChange={handleChange}
+                                    required
+                                    placeholder="e.g. Summer Collection Launch 2024"
+                                    className="text-lg font-medium"
+                                />
+                                
+                                <div className="space-y-1.5">
+                                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                                        Description <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="relative">
+                                        <textarea
+                                            id="description"
+                                            name="description"
+                                            rows={5}
+                                            className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm resize-none p-3"
+                                            value={formData.description}
+                                            onChange={handleChange}
+                                            required
+                                            placeholder="Describe your brand, your goals for this campaign, and what you're promoting..."
+                                        />
+                                        <div className="absolute bottom-3 right-3 text-xs text-gray-400">
+                                            {formData.description.length} chars
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label htmlFor="requirements" className="block text-sm font-medium text-gray-700">
+                                        Requirements
+                                    </label>
+                                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                        <textarea
+                                            id="requirements"
+                                            name="requirements"
+                                            rows={3}
+                                            className="block w-full border-0 bg-transparent p-0 text-sm placeholder-gray-500 focus:ring-0"
+                                            value={formData.requirements}
+                                            onChange={handleChange}
+                                            placeholder="• Must have 10k+ followers&#10;• Post 1 Reel and 1 Story&#10;• Tag @yourbrand in the first line"
+                                        />
+                                    </div>
+                                    <p className="text-xs text-gray-500">List specific deliverables or criteria for approval.</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-1.5">
+                                        <label htmlFor="budget" className="block text-sm font-medium text-gray-700">
+                                            Budget <span className="text-red-500">*</span>
+                                        </label>
+                                        <div className="relative rounded-md shadow-sm">
+                                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                <span className="text-gray-500 sm:text-sm">₹</span>
+                                            </div>
+                                            <input
+                                                type="number"
+                                                name="budget"
+                                                id="budget"
+                                                className="block w-full rounded-md border-gray-300 pl-7 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-10"
+                                                placeholder="0.00"
+                                                value={formData.budget}
+                                                onChange={handleChange}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                         <label htmlFor="deadline" className="block text-sm font-medium text-gray-700">
+                                            Deadline
+                                        </label>
+                                        <input
+                                            type="date"
+                                            name="deadline"
+                                            id="deadline"
+                                            className="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-10"
+                                            value={formData.deadline}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="pt-6 border-t border-gray-100 flex items-center justify-end gap-3">
+                                <Button type="button" variant="ghost" onClick={() => router.back()}>Cancel</Button>
+                                <Button type="submit" variant="primary" disabled={loading} className="px-8 shadow-md hover:shadow-lg transition-shadow">
+                                    {loading ? (
+                                        <>
+                                            <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                                            {loadingStatus || 'Creating Campaign...'}
+                                        </>
+                                    ) : (
+                                        'Create Campaign'
+                                    )}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                 </div>
+             </div>
         </div>
       </div>
     </div>

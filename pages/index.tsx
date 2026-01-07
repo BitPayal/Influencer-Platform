@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -5,6 +6,34 @@ import { Button } from '@/components/ui/Button';
 import { CheckCircle } from 'lucide-react';
 
 const Home: NextPage = () => {
+  // Scroll to top on component mount and clear hash to prevent jumping
+  useEffect(() => {
+    // Disable default browser scroll restoration
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+
+    // Clear any hash from the URL to prevent browser from jumping to section
+    if (window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+    
+    // Force scroll to top immediately
+    window.scrollTo(0, 0);
+    
+    // Fallback: Ensure scroll happens even if there's a slight render delay
+    const timeoutId = setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 10);
+    
+    return () => {
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'auto';
+      }
+      clearTimeout(timeoutId);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-white">
       <Head>
@@ -60,65 +89,110 @@ const Home: NextPage = () => {
         </script>
       </Head>
 
-      <nav className="fixed top-0 w-full bg-white/98 backdrop-blur-sm shadow-sm z-50 border-b border-gray-100">
+      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md shadow-sm z-50 border-b border-gray-100 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Left: Brand Identity */}
             <div className="flex items-center gap-3">
               <Link href="/">
-                <span className="text-2xl font-extrabold text-gray-900 cursor-pointer">
-                  <span className="text-orange-500">Cehpoint</span> Influence
+                <span className="text-2xl font-black text-gray-900 cursor-pointer tracking-tight flex items-center gap-1">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-red-600">Cehpoint</span> 
+                  <span>Influence</span>
                 </span>
               </Link>
-              <span className="hidden sm:block px-3 py-1 bg-orange-50 text-orange-700 text-xs font-bold rounded-full border border-orange-100">
+              <span className="hidden md:inline-flex px-3 py-1 bg-gradient-to-r from-orange-50 to-red-50 text-orange-700 text-xs font-bold rounded-full border border-orange-100 shadow-sm">
                 West Bengal's #1
               </span>
             </div>
 
-            {/* Center: Neutral Navigation */}
-            <div className="hidden lg:flex items-center space-x-8">
-              <a href="#how-it-works" className="text-gray-600 hover:text-orange-600 font-medium text-sm transition-colors">How It Works</a>
-              <a href="#brands" className="text-gray-600 hover:text-orange-600 font-medium text-sm transition-colors">For Brands</a>
-              <a href="#influencers" className="text-gray-600 hover:text-orange-600 font-medium text-sm transition-colors">For Influencers</a>
-              <a href="#pricing" className="text-gray-600 hover:text-orange-600 font-medium text-sm transition-colors">Pricing</a>
-            </div>
-
-            {/* Right: Action Area */}
-            <div className="flex items-center gap-4">
-              {/* Login Dropdown */}
-              <div className="relative group">
-                <button className="flex items-center gap-1 text-gray-700 font-semibold hover:text-orange-600 transition-colors py-2">
-                  Login 
-                  <svg className="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                <div className="absolute right-0 top-full pt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform group-hover:translate-y-0 translate-y-2">
-                  <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
-                    <Link 
-                      href="/login/influencer"
-                      className="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors border-b border-gray-50"
-                    >
-                        <span className="font-semibold block">Influencer Login</span>
-                        <span className="text-xs text-gray-500">For Creators</span>
-                    </Link>
-                    <Link 
-                      href="/login/brand"
-                      className="block px-4 py-3 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
-                    >
-                        <span className="font-semibold block">Brand Login</span>
-                        <span className="text-xs text-gray-500">For Companies</span>
-                    </Link>
-                  </div>
-                </div>
+            {/* Right: Navigation & Actions - Unified for consistent spacing */}
+            <div className="flex items-center gap-6 lg:gap-8">
+              {/* Desktop Nav Links */}
+              <div className="hidden lg:flex items-center gap-8">
+                <a 
+                  href="#how-it-works" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="text-gray-600 hover:text-orange-600 font-medium text-sm transition-colors relative group"
+                >
+                  How It Works
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-500 transition-all group-hover:w-full"></span>
+                </a>
+                <a 
+                  href="#pricing" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="text-gray-600 hover:text-orange-600 font-medium text-sm transition-colors relative group"
+                >
+                  Pricing
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-500 transition-all group-hover:w-full"></span>
+                </a>
+                 <a 
+                   href="#why-join" 
+                   onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById('why-join')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                   className="text-gray-600 hover:text-orange-600 font-medium text-sm transition-colors relative group"
+                 >
+                  Why Us?
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-500 transition-all group-hover:w-full"></span>
+                </a>
               </div>
 
-              {/* Get Started CTA */}
-              <Link href="/register">
-                <Button className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2.5 rounded-lg shadow-lg hover:shadow-orange-200 transition-all transform hover:-translate-y-0.5">
-                  Get Started
-                </Button>
-              </Link>
+              {/* Action Buttons */}
+              <div className="flex items-center gap-4 lg:gap-8">
+                {/* Login Dropdown */}
+                <div className="relative group">
+                  <button className="flex items-center gap-2 text-gray-700 font-semibold hover:text-orange-600 transition-colors py-2 px-3 rounded-lg hover:bg-orange-50/50">
+                    Login 
+                    <svg className="w-4 h-4 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <div className="absolute right-0 top-full pt-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform group-hover:translate-y-0 translate-y-2">
+                    <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden ring-1 ring-black ring-opacity-5">
+                      <div className="p-2 space-y-1">
+                        <Link 
+                          href="/login/influencer"
+                          className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-700 rounded-lg transition-colors group/item"
+                        >
+                            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 group-hover/item:bg-orange-200 transition-colors">
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                            </div>
+                            <div>
+                              <span className="font-bold block text-sm">Influencer Login</span>
+                              <span className="text-xs text-gray-500">For Creators</span>
+                            </div>
+                        </Link>
+                        <Link 
+                          href="/login/brand"
+                          className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition-colors group/item"
+                        >
+                            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 group-hover/item:bg-indigo-200 transition-colors">
+                               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                            </div>
+                            <div>
+                               <span className="font-bold block text-sm">Brand Login</span>
+                               <span className="text-xs text-gray-500">For Companies</span>
+                            </div>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Get Started CTA */}
+                <Link href="/register">
+                  <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold px-6 py-2.5 rounded-full shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all transform hover:-translate-y-0.5">
+                    Get Started
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -194,7 +268,7 @@ const Home: NextPage = () => {
         </section>
 
         {/* Why Join Section - Emphasizing Marketing Partnership */}
-        <section className="py-20 bg-white">
+        <section id="why-join" className="py-20 bg-white scroll-mt-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-4xl sm:text-5xl font-black text-gray-900 mb-4">
@@ -304,7 +378,7 @@ const Home: NextPage = () => {
         </section>
 
         {/* How It Works */}
-        <section className="py-20 bg-gray-50">
+        <section id="how-it-works" className="py-20 bg-gray-50 scroll-mt-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-4xl sm:text-5xl font-black text-gray-900 mb-4">
@@ -350,7 +424,7 @@ const Home: NextPage = () => {
             </div>
 
             {/* Quality-Based Payment Explanation */}
-            <div className="max-w-4xl mx-auto mt-16">
+            <div id="pricing" className="max-w-4xl mx-auto mt-16 scroll-mt-24">
               <div className="bg-white rounded-2xl border-2 border-orange-300 p-10 shadow-xl">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="bg-orange-100 p-3 rounded-lg">
