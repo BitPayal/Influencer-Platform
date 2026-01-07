@@ -78,7 +78,7 @@ export interface Payment {
   task_assignment_id?: string;
   amount: number;
   payment_type: 'fixed' | 'revenue_share';
-  status: PaymentStatus;
+  payment_status: PaymentStatus;
   upi_transaction_id?: string;
   paid_at?: string;
   paid_by?: string;

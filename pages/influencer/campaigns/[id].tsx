@@ -64,7 +64,7 @@ const CampaignDetails: React.FC = () => {
                 .from('influencers')
                 .select('id')
                 .eq('user_id', user?.id)
-                .single();
+                .single() as { data: any | null };
 
             if (influencer) {
                 const { data } = await supabase
@@ -72,7 +72,7 @@ const CampaignDetails: React.FC = () => {
                     .select('status')
                     .eq('campaign_id', id)
                     .eq('influencer_id', influencer.id)
-                    .maybeSingle(); // Use maybeSingle to avoid 406 if not found
+                    .maybeSingle() as { data: any | null }; // Use maybeSingle to avoid 406 if not found
                 
                 if (data) setApplicationStatus(data.status);
             }
@@ -90,7 +90,7 @@ const CampaignDetails: React.FC = () => {
                 .from('influencers')
                 .select('id')
                 .eq('user_id', user?.id)
-                .single();
+                .single() as { data: any | null };
 
             if (!influencer) {
                 alert("Please complete your influencer profile first.");
@@ -104,7 +104,7 @@ const CampaignDetails: React.FC = () => {
                 bid_amount: parseFloat(bidAmount) || 0,
                 cover_message: coverMessage,
                 status: 'pending' // Default status
-            });
+            } as any);
 
             if (error) throw error;
 

@@ -56,7 +56,7 @@ const AdminTasksPage = () => {
           reward: formData.reward,
           project_id: null // you can update later
         }
-      ]);
+      ] as any);
 
     if (error) {
       console.error(error);

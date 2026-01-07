@@ -43,7 +43,7 @@ const InfluencerRevenuePage = () => {
             const { data: paymentsData, error } = await supabase
                 .from('payments')
                 .select('*')
-                .eq('influencer_id', influencer.id)
+                .eq('influencer_id', (influencer as any).id)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -53,8 +53,8 @@ const InfluencerRevenuePage = () => {
 
             // 3. Calculate Stats
             const total = typedPayments.reduce((acc, curr) => acc + (curr.amount || 0), 0);
-            const pending = typedPayments.filter(p => p.status === 'pending').reduce((acc, curr) => acc + (curr.amount || 0), 0);
-            const paid = typedPayments.filter(p => p.status === 'paid').reduce((acc, curr) => acc + (curr.amount || 0), 0);
+            const pending = typedPayments.filter(p => p.payment_status === 'pending').reduce((acc, curr) => acc + (curr.amount || 0), 0);
+            const paid = typedPayments.filter(p => p.payment_status === 'paid').reduce((acc, curr) => acc + (curr.amount || 0), 0);
 
             setStats({ totalEarned: total, pending, paid });
 
@@ -152,11 +152,11 @@ const InfluencerRevenuePage = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                                                 <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                                    payment.status === 'paid' ? 'bg-green-100 text-green-700' :
-                                                    payment.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                                    payment.payment_status === 'paid' ? 'bg-green-100 text-green-700' :
+                                                    payment.payment_status === 'pending' ? 'bg-amber-100 text-amber-700' :
                                                     'bg-gray-100 text-gray-700'
                                                 }`}>
-                                                    {payment.status?.toUpperCase() || 'PENDING'}
+                                                    {payment.payment_status?.toUpperCase() || 'PENDING'}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">

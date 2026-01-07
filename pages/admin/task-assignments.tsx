@@ -80,7 +80,7 @@ const AssignTasksPage = () => {
           assigned_year: year,
           created_by: user.id,
         },
-      ]);
+      ] as any);
 
       if (error) throw error;
 

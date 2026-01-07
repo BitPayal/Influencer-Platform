@@ -28,7 +28,7 @@ const InfluencerPayments: React.FC = () => {
         .from('influencers')
         .select('*')
         .eq('user_id', user?.id)
-        .single();
+        .single() as { data: any | null };
 
       setInfluencer(influencerData);
 

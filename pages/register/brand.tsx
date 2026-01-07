@@ -72,7 +72,7 @@ const BrandRegister: React.FC = () => {
 
       // 3. User table entry (Upsert to avoid hang on select)
       console.log('Upserting into users table...');
-      const upsertUserPromise = supabase.from('users').upsert({
+      const upsertUserPromise = (supabase.from('users') as any).upsert({
           id: userId,
           email: formData.email,
           role: 'marketing', // Brand role
@@ -86,7 +86,7 @@ const BrandRegister: React.FC = () => {
       if (userError) throw new Error(userError.message || "Failed to create user profile");
 
       // 4. Brands table entry
-      const insertBrandPromise = supabase.from('brands').insert({
+      const insertBrandPromise = (supabase.from('brands') as any).insert({
           user_id: userId,
           company_name: formData.companyName,
           website: formData.website,

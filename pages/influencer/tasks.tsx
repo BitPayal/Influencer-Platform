@@ -43,8 +43,10 @@ const InfluencerTasksPage = () => {
           tasks(*),
           video_submissions(*)
         `)
-        .eq("influencer_id", influencer.id)
+        .eq("influencer_id", (influencer as any).id)
         .order("created_at", { ascending: false });
+
+      const typedAssignments = (assignments || []) as any[];
 
       // 3. Fetch approved campaign applications
       const { data: campaigns } = await supabase
@@ -53,23 +55,27 @@ const InfluencerTasksPage = () => {
           *,
           campaigns (*)
         `)
-        .eq("influencer_id", influencer.id)
+        .eq("influencer_id", (influencer as any).id)
         .eq("status", "approved")
         .order("updated_at", { ascending: false });
+
+      const typedCampaigns = (campaigns || []) as any[];
 
       // 4. Fetch ALL video submissions for this influencer
       const { data: submissions } = await supabase
         .from("video_submissions")
         .select("*")
-        .eq("influencer_id", influencer.id);
+        .eq("influencer_id", (influencer as any).id);
+        
+      const typedSubmissions = (submissions || []) as any[];
 
       // Helper to find submission for campaign
       const getCampaignSubmission = (campaignId: string) => {
-        return submissions?.find(s => s.campaign_id === campaignId);
+        return typedSubmissions?.find(s => s.campaign_id === campaignId);
       };
 
       // 5. Normalize and merge data
-      const normalizedAssignments = (assignments || []).map((a) => {
+      const normalizedAssignments = typedAssignments.map((a) => {
         // Standard assignments already join video_submissions in 'a.video_submissions'
         // But we can check our manually fetched submissions if needed.
         // Usually, 'a.status' field on task_assignment is updated by backend?
@@ -88,7 +94,7 @@ const InfluencerTasksPage = () => {
         };
       });
 
-      const normalizedCampaigns = (campaigns || []).map((c) => {
+      const normalizedCampaigns = typedCampaigns.map((c) => {
         const submission = getCampaignSubmission(c.campaign_id);
         let status = 'assigned';
         if (submission) {
@@ -216,7 +222,7 @@ const InfluencerTasksPage = () => {
                   <div className="flex justify-between items-start">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <Badge variant={task.type === 'campaign' ? 'primary' : 'default'} className="text-xs">
+                        <Badge variant={task.type === 'campaign' ? 'info' : 'default'} className="text-xs">
                           {task.type === 'campaign' ? 'Campaign' : 'Monthly Task'}
                         </Badge>
                         <span className="text-xs text-gray-500">

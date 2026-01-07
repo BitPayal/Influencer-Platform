@@ -69,7 +69,7 @@ const AdminProjectsPage = () => {
 
     console.log("Payload inserting:", payload);
 
-    const { error } = await supabase.from('projects').insert([payload]);
+    const { error } = await supabase.from('projects').insert([payload] as any);
 
     if (error) {
       alert(error.message);

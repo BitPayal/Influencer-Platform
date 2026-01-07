@@ -27,9 +27,9 @@ const AdminDashboard: React.FC = () => {
 
   const fetchDashboardStats = async () => {
     try {
-      const { data: influencers } = await supabase.from('influencers').select('*');
-      const { data: videos } = await supabase.from('video_submissions').select('*');
-      const { data: payments } = await supabase.from('payments').select('*');
+      const { data: influencers } = await supabase.from('influencers').select('*') as { data: any[] | null };
+      const { data: videos } = await supabase.from('video_submissions').select('*') as { data: any[] | null };
+      const { data: payments } = await supabase.from('payments').select('*') as { data: any[] | null };
 
       const districtMap = new Map();
       influencers?.forEach((inf) => {

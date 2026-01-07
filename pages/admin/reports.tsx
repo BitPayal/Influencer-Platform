@@ -37,9 +37,9 @@ const AdminReports: React.FC = () => {
 
   const fetchReportData = async () => {
     try {
-      const { data: influencers } = await supabase.from('influencers').select('*');
-      const { data: videos } = await supabase.from('video_submissions').select('*');
-      const { data: payments } = await supabase.from('payments').select('*');
+      const { data: influencers } = await supabase.from('influencers').select('*') as { data: any[] | null };
+      const { data: videos } = await supabase.from('video_submissions').select('*') as { data: any[] | null };
+      const { data: payments } = await supabase.from('payments').select('*') as { data: any[] | null };
 
       const stateMap = new Map();
       const districtMap = new Map();
@@ -112,7 +112,7 @@ const AdminReports: React.FC = () => {
       let filename = '';
 
       if (type === 'influencers') {
-        const { data } = await supabase.from('influencers').select('*');
+        const { data } = await supabase.from('influencers').select('*') as { data: any[] | null };
         filename = `influencers_${new Date().toISOString().split('T')[0]}.csv`;
         csvContent =
           'Full Name,Email,Phone,District,State,Follower Count,Status,UPI ID,Created At\n';
@@ -122,7 +122,7 @@ const AdminReports: React.FC = () => {
       } else if (type === 'payments') {
         const { data } = await supabase
           .from('payments')
-          .select('*, influencer:influencers(full_name, email)');
+          .select('*, influencer:influencers(full_name, email)') as { data: any[] | null };
         filename = `payments_${new Date().toISOString().split('T')[0]}.csv`;
         csvContent =
           'Influencer Name,Email,Amount,Type,Status,Transaction ID,Created At,Paid At,Notes\n';
@@ -132,7 +132,7 @@ const AdminReports: React.FC = () => {
       } else if (type === 'videos') {
         const { data } = await supabase
           .from('video_submissions')
-          .select('*, influencer:influencers(full_name, email, district)');
+          .select('*, influencer:influencers(full_name, email, district)') as { data: any[] | null };
         filename = `videos_${new Date().toISOString().split('T')[0]}.csv`;
         csvContent =
           'Title,Influencer,Email,District,Status,Submitted At,Video URL\n';

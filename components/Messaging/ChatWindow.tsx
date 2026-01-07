@@ -14,7 +14,7 @@ interface ChatWindowProps {
 const ChatWindow: React.FC<ChatWindowProps> = ({ recipientId, recipientName }) => {
     const { user } = useAuth();
     const [isOnline, setIsOnline] = useState(false);
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [messages, setMessages] = useState<any[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -91,7 +91,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ recipientId, recipientName }) =
             sender_id: user.id,
             receiver_id: recipientId,
             content: msgContent
-        }).select().single();
+        } as any).select().single();
 
         if (error) {
             console.error("Error sending message:", error);

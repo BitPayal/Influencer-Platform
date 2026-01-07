@@ -8,6 +8,7 @@ import { Layout } from '@/components/Layout';
 import ChatWindow from '@/components/Messaging/ChatWindow';
 import { Search, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
+import { Message } from '@/types';
 
 interface Conversation {
     userId: string;
@@ -66,12 +67,12 @@ const Messages: React.FC = () => {
                 let name = 'User';
                 // Try influencer
                 const { data: inf } = await supabase.from('influencers').select('full_name').eq('user_id', targetUserId).maybeSingle();
-                if (inf) name = inf.full_name;
+                if (inf) name = (inf as any).full_name;
                 
                 // Try brand
                 if (!inf) {
                     const { data: br } = await supabase.from('brands').select('company_name').eq('user_id', targetUserId).maybeSingle();
-                    if (br) name = br.company_name;
+                    if (br) name = (br as any).company_name;
                 }
 
                 setSelectedUserId(targetUserId);
@@ -85,8 +86,8 @@ const Messages: React.FC = () => {
     const markMessagesAsRead = async (senderId: string) => {
         if (!user) return;
         try {
-            const { error } = await supabase
-                .from('messages')
+            const { error } = await (supabase
+                .from('messages') as any)
                 .update({ is_read: true })
                 .eq('sender_id', senderId)
                 .eq('receiver_id', user.id)
@@ -109,7 +110,7 @@ const Messages: React.FC = () => {
 
     const fetchConversations = async () => {
         try {
-            const { data: messages, error } = await supabase
+            const { data: messagesData, error } = await supabase
                 .from('messages')
                 .select(`
                     id,
@@ -123,7 +124,9 @@ const Messages: React.FC = () => {
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
-            if (!messages) return;
+            if (!messagesData) return;
+
+            const messages = messagesData as Message[];
 
             // Identify unique users involved
             const otherUserIds = new Set<string>();
@@ -138,20 +141,22 @@ const Messages: React.FC = () => {
 
             if (userIdList.length > 0) {
                 // Try influencers
-                const { data: influencers } = await supabase
+                const { data: influencersData } = await supabase
                     .from('influencers')
                     .select('user_id, full_name')
                     .in('user_id', userIdList);
                 
-                influencers?.forEach(inf => userMap.set(inf.user_id, inf.full_name));
+                const influencers = (influencersData || []) as any[];
+                influencers.forEach(inf => userMap.set(inf.user_id, inf.full_name));
 
                 // Try brands (for IDs not found yet, or just fetch all to be safe)
-                const { data: brands } = await supabase
+                const { data: brandsData } = await supabase
                     .from('brands')
                     .select('user_id, company_name')
                     .in('user_id', userIdList);
                 
-                brands?.forEach(br => userMap.set(br.user_id, br.company_name));
+                const brands = (brandsData || []) as any[];
+                brands.forEach(br => userMap.set(br.user_id, br.company_name));
             }
 
             const contactMap = new Map<string, Conversation>();
