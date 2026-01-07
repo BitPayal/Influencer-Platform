@@ -188,7 +188,8 @@ const insertInfluencerPromise = supabase
     id_proof_type: formData.idProofType,
     id_proof_url: uploadedIdProofUrl,
     upi_id: formData.upiId,
-    approval_status: 'pending',
+    approval_status: 'approved',
+    approved_at: new Date().toISOString(),
   } as any);
 
 const { error: influencerError } = await Promise.race([
@@ -202,7 +203,7 @@ if (influencerError) throw influencerError;
 
 
     alert(
-      'Registration successful! Your application is under review.'
+      'Registration successful! Welcome to Cehpoint.'
     );
     router.push('/login');
   } catch (err: any) {
