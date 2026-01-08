@@ -441,24 +441,24 @@ const Home: NextPage = () => {
                     </p>
                     <ol className="space-y-4 text-gray-700">
                       <li className="flex items-start gap-3">
-                        <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">1</span>
-                        <span className="text-sm sm:text-base"><strong>Submit your first video</strong> - Following our guidelines and sample scripts</span>
+                        <span className="bg-orange-500 text-white w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0 mt-0.5 sm:mt-0">1</span>
+                        <span className="text-sm sm:text-base flex-1"><strong>Submit your first video</strong> - Following our guidelines and sample scripts</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">2</span>
-                        <span className="text-sm sm:text-base"><strong>We analyze quality</strong> - Video production, editing, presentation, authenticity</span>
+                        <span className="bg-orange-500 text-white w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0 mt-0.5 sm:mt-0">2</span>
+                        <span className="text-sm sm:text-base flex-1"><strong>We analyze quality</strong> - Video production, editing, presentation, authenticity</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">3</span>
-                        <span className="text-sm sm:text-base"><strong>We review your profile</strong> - Engagement rate, audience demographics, reach</span>
+                        <span className="bg-orange-500 text-white w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0 mt-0.5 sm:mt-0">3</span>
+                        <span className="text-sm sm:text-base flex-1"><strong>We review your profile</strong> - Engagement rate, audience demographics, reach</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">4</span>
-                        <span className="text-sm sm:text-base"><strong>You get YOUR custom rate</strong> - Typically ₹2,000 to ₹10,000 per video based on your quality</span>
+                        <span className="bg-orange-500 text-white w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0 mt-0.5 sm:mt-0">4</span>
+                        <span className="text-sm sm:text-base flex-1"><strong>You get YOUR custom rate</strong> - Typically ₹2,000 to ₹10,000 per video based on your quality</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <span className="bg-green-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">5</span>
-                        <span className="text-sm sm:text-base"><strong>All future videos</strong> - Earn at your assigned rate + 5% revenue share on leads you generate</span>
+                        <span className="bg-green-500 text-white w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0 mt-0.5 sm:mt-0">5</span>
+                        <span className="text-sm sm:text-base flex-1"><strong>All future videos</strong> - Earn at your assigned rate + 5% revenue share on leads you generate</span>
                       </li>
                     </ol>
                     <div className="bg-orange-50 p-4 sm:p-6 rounded-xl mt-6 border-l-4 border-orange-500">
