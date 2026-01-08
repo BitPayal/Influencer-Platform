@@ -6,9 +6,10 @@ interface UserMenuProps {
   user: any;
   profileName: string | null;
   onSignOut: () => void;
+  isLoading?: boolean;
 }
 
-export const UserMenu: React.FC<UserMenuProps> = ({ user, profileName, onSignOut }) => {
+export const UserMenu: React.FC<UserMenuProps> = ({ user, profileName, onSignOut, isLoading }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -36,6 +37,14 @@ export const UserMenu: React.FC<UserMenuProps> = ({ user, profileName, onSignOut
 
   const displayName = profileName || user?.email || 'User';
   const displayEmail = user?.email || '';
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 p-1">
+        <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-gray-200 animate-pulse border border-gray-300"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative" ref={menuRef}>

@@ -7,6 +7,15 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Toast } from '@/components/ui/Toast';
+import { 
+  Briefcase, 
+  MapPin, 
+  Calendar, 
+  DollarSign, 
+  AlertCircle, 
+  FileText, 
+  ArrowLeft 
+} from 'lucide-react';
 
 const CampaignDetails: React.FC = () => {
     const router = useRouter();
@@ -132,7 +141,7 @@ const CampaignDetails: React.FC = () => {
     if (!campaign) return <div className="text-center py-12">Campaign not found</div>;
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12">
+        <div className="min-h-screen bg-gray-50/50 pb-12">
             <Head>
                 <title>{campaign.title} - Cehpoint</title>
             </Head>
@@ -144,104 +153,192 @@ const CampaignDetails: React.FC = () => {
                 />
             )}
 
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <Button variant="ghost" onClick={() => router.back()} className="mb-6">← Back to Campaigns</Button>
+            {/* Header / Nav */}
+            <div className="bg-white border-b border-gray-200 sticky top-14 z-20 shadow-sm">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                     <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 hover:text-gray-900 -ml-4">
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Back to Campaigns
+                     </Button>
+                     <span className="text-sm text-gray-400 font-mono">ID: {campaign.id.slice(0,8)}</span>
+                </div>
+            </div>
 
-                <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                    <div className="bg-indigo-600 px-8 py-6">
-                        <h1 className="text-3xl font-bold text-white mb-2">{campaign.title}</h1>
-                        <p className="text-indigo-100 text-lg">by {campaign.brands?.company_name}</p>
-                    </div>
+            <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                     
-                    <div className="p-8">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div className="md:col-span-2 space-y-8">
-                                <section>
-                                    <h2 className="text-xl font-bold text-gray-900 mb-3">Description</h2>
-                                    <div className="prose text-gray-700 whitespace-pre-wrap">
-                                        {campaign.description}
-                                    </div>
-                                </section>
-
-                                {campaign.requirements && (
-                                    <section className="bg-orange-50 p-6 rounded-lg border border-orange-100">
-                                        <h2 className="text-xl font-bold text-gray-900 mb-3">Requirements</h2>
-                                        <div className="prose text-gray-700 whitespace-pre-wrap">
-                                            {campaign.requirements}
-                                        </div>
-                                    </section>
-                                )}
+                    {/* Left Column: Main Content */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Title Card */}
+                        <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200">
+                            <div className="flex justify-between items-start gap-4 mb-6">
+                                <div className="flex items-center gap-4">
+                                     <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 flex items-center justify-center text-2xl font-bold text-indigo-600 shadow-inner">
+                                        {campaign.brands?.company_name?.charAt(0).toUpperCase() || 'B'}
+                                     </div>
+                                     <div>
+                                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-1">{campaign.title}</h1>
+                                         <div className="flex items-center text-gray-500 text-sm font-medium">
+                                             <span>by {campaign.brands?.company_name}</span>
+                                             <span className="mx-2">•</span>
+                                             <span className="text-indigo-600">{campaign.brands?.industry || 'Brand Partner'}</span>
+                                         </div>
+                                     </div>
+                                </div>
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200 shadow-sm">
+                                    Active Campaign
+                                </span>
                             </div>
 
-                            <div className="space-y-6">
-                                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                                    <h3 className="font-semibold text-gray-900 mb-4">Campaign Details</h3>
-                                    <div className="space-y-3 text-sm">
-                                        <div>
-                                            <span className="text-gray-500 block">Budget</span>
-                                            <span className="font-bold text-gray-900 text-lg">₹{campaign.budget?.toLocaleString() ?? 'Negotiable'}</span>
+                            <div className="prose prose-indigo max-w-none text-gray-600 leading-relaxed">
+                                <h3 className="text-lg font-bold text-gray-900 mb-2">About the Campaign</h3>
+                                <p className="mb-0">{campaign.description}</p>
+                            </div>
+                        </div>
+
+                        {/* Requirements Card */}
+                        <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200">
+                             <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-orange-100 rounded-lg text-orange-600">
+                                    <FileText className="h-5 w-5" />
+                                </div>
+                                <h2 className="text-xl font-bold text-gray-900">Requirements & Deliverables</h2>
+                             </div>
+                            
+                            {campaign.requirements ? (
+                                <div className="space-y-4">
+                                    <div className="bg-orange-50/50 rounded-xl p-5 border border-orange-100/50">
+                                        <div className="prose prose-orange max-w-none text-gray-700">
+                                            {campaign.requirements}
                                         </div>
-                                        <div>
-                                            <span className="text-gray-500 block">Deadline</span>
-                                            <span className="font-medium text-gray-900">
-                                                {campaign.deadline ? new Date(campaign.deadline).toLocaleDateString() : 'No Deadline'}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span className="text-gray-500 block">Location</span>
-                                            <span className="font-medium text-gray-900">{campaign.brands?.location || 'Remote'}</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-gray-500 block">Industry</span>
-                                            <span className="font-medium text-gray-900">{campaign.brands?.industry}</span>
-                                        </div>
+                                    </div>
+                                    <div className="flex gap-3 text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
+                                        <AlertCircle className="w-5 h-5 text-gray-400 shrink-0" />
+                                        <p>Please ensure you can meet all requirements before applying. Incomplete submissions may be rejected.</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <p className="text-gray-500 italic">No specific requirements listed.</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Right Column: Sticky Sidebar */}
+                    <div className="lg:col-span-1 lg:sticky lg:top-36 space-y-6">
+                        
+                        {/* Campaign Meta Card */}
+                        <div className="bg-white rounded-2xl shadow-lg shadow-indigo-100/50 border border-indigo-50 overflow-hidden">
+                            <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-6 py-4 text-white">
+                                <h3 className="font-bold text-lg flex items-center gap-2">
+                                    <Briefcase className="w-5 h-5 text-indigo-200" />
+                                    Campaign Details
+                                </h3>
+                            </div>
+                            <div className="p-6 space-y-5">
+                                <div className="flex items-start gap-4">
+                                    <div className="p-2 bg-green-50 rounded-lg text-green-600 mt-1">
+                                        <DollarSign className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Budget</p>
+                                        <p className="text-xl font-bold text-gray-900 font-mono">₹{campaign.budget?.toLocaleString()}</p> 
+                                        <p className="text-xs text-gray-400 mt-0.5">Negotiable based on reach</p>
                                     </div>
                                 </div>
 
-                                {/* Application Status / Form */}
-                                <div className="border-t border-gray-200 pt-6">
-                                    {applicationStatus ? (
-                                        <div className={`p-4 rounded-lg text-center font-medium ${
-                                            applicationStatus === 'approved' ? 'bg-green-100 text-green-800' :
-                                            applicationStatus === 'rejected' ? 'bg-red-100 text-red-800' :
-                                            'bg-yellow-100 text-yellow-800'
-                                        }`}>
-                                            Application Status: {applicationStatus.charAt(0).toUpperCase() + applicationStatus.slice(1)}
-                                        </div>
-                                    ) : (
-                                        <form onSubmit={handleApply} className="space-y-4">
-                                            <h3 className="font-bold text-gray-900">Apply Now</h3>
+                                <div className="w-full h-px bg-gray-100"></div>
+
+                                <div className="flex items-start gap-4">
+                                     <div className="p-2 bg-blue-50 rounded-lg text-blue-600 mt-1">
+                                        <Calendar className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Deadline</p>
+                                        <p className="text-sm font-bold text-gray-900">
+                                            {campaign.deadline ? new Date(campaign.deadline).toLocaleDateString(undefined, { dateStyle: 'long' }) : 'No Deadline'}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-start gap-4">
+                                     <div className="p-2 bg-purple-50 rounded-lg text-purple-600 mt-1">
+                                        <MapPin className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Location</p>
+                                        <p className="text-sm font-bold text-gray-900">{campaign.brands?.location || 'Remote'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Application Form Card */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                            <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold">1</span>
+                                Submit Application
+                            </h3>
+
+                            {applicationStatus ? (
+                                <div className={`p-4 rounded-xl text-center border-2 border-dashed ${
+                                    applicationStatus === 'approved' ? 'bg-green-50 border-green-200 text-green-800' :
+                                    applicationStatus === 'rejected' ? 'bg-red-50 border-red-200 text-red-800' :
+                                    'bg-yellow-50 border-yellow-200 text-yellow-800'
+                                }`}>
+                                    <div className="mb-2 text-2xl">
+                                        {applicationStatus === 'approved' ? '🎉' : applicationStatus === 'rejected' ? '❌' : '⏳'}
+                                    </div>
+                                    <p className="font-semibold">Application {applicationStatus.charAt(0).toUpperCase() + applicationStatus.slice(1)}</p>
+                                    <p className="text-xs opacity-75 mt-1">Check back later for updates</p>
+                                </div>
+                            ) : (
+                                <form onSubmit={handleApply} className="space-y-5">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">Your Bid Amount</label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-2.5 text-gray-400 font-semibold">₹</span>
                                             <Input
                                                 id="bid"
-                                                label="Your Bid (₹)"
                                                 type="number"
                                                 value={bidAmount}
                                                 onChange={(e) => setBidAmount(e.target.value)}
                                                 required
                                                 placeholder={campaign.budget?.toString()}
+                                                className="pl-8 font-mono text-lg font-semibold text-gray-900"
                                             />
-                                            <div className="flex flex-col gap-1.5">
-                                                <label className="text-sm font-medium text-gray-700">Cover Message</label>
-                                                <textarea 
-                                                    className="w-full rounded-md border border-gray-300 p-2 text-sm"
-                                                    rows={3}
-                                                    value={coverMessage}
-                                                    onChange={(e) => setCoverMessage(e.target.value)}
-                                                    placeholder="Why are you a good fit?"
-                                                    required
-                                                />
-                                            </div>
-                                            <Button type="submit" variant="primary" className="w-full" isLoading={applying}>
-                                                Submit Application
-                                            </Button>
-                                        </form>
-                                    )}
-                                </div>
-                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">Cover Message</label>
+                                        <textarea 
+                                            className="w-full rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all resize-none"
+                                            rows={4}
+                                            value={coverMessage}
+                                            onChange={(e) => setCoverMessage(e.target.value)}
+                                            placeholder="Introduce yourself and explain why you're perfect for this campaign..."
+                                            required
+                                        />
+                                    </div>
+
+                                    <Button 
+                                        type="submit" 
+                                        variant="primary" 
+                                        className="w-full py-6 font-bold text-base shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all rounded-xl" 
+                                        isLoading={applying}
+                                    >
+                                        Send Proposal
+                                    </Button>
+                                    <p className="text-center text-xs text-gray-400 mt-2">
+                                        By applying you agree to our terms of service.
+                                    </p>
+                                </form>
+                            )}
                         </div>
+
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
     );
 };

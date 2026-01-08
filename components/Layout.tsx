@@ -25,11 +25,16 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const [profileName, setProfileName] = React.useState<string | null>(null);
+  const [isProfileLoading, setIsProfileLoading] = React.useState(true);
 
   React.useEffect(() => {
     const fetchProfileName = async () => {
-      if (!user) return;
+      if (!user) {
+        setIsProfileLoading(false);
+        return;
+      }
       
+      setIsProfileLoading(true);
       console.log("Layout: Fetching profile for user:", user.id, "Role:", user.role);
 
       try {
@@ -74,6 +79,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         }
       } catch (error) {
         console.error("Error fetching profile name:", error);
+      } finally {
+        setIsProfileLoading(false);
       }
     };
 
@@ -147,6 +154,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 user={user} 
                 profileName={profileName} 
                 onSignOut={handleSignOut} 
+                isLoading={isProfileLoading}
               />
             </div>
           </div>
