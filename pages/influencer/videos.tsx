@@ -26,6 +26,12 @@ const InfluencerVideos: React.FC = () => {
     description: '',
     videoUrl: '',
   });
+  const [formErrors, setFormErrors] = useState({
+    title: '',
+    description: '',
+    videoUrl: '',
+    campaign: '',
+  });
   const [submitting, setSubmitting] = useState(false);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
@@ -107,9 +113,51 @@ const InfluencerVideos: React.FC = () => {
   };
 
   // ... handleSubmit ...
+  const validateForm = () => {
+    const errors = {
+      title: '',
+      description: '',
+      videoUrl: '',
+      campaign: '',
+    };
+    let isValid = true;
+
+    if (!formData.title.trim()) {
+      errors.title = 'Title is required';
+      isValid = false;
+    }
+
+    if (!formData.description.trim()) {
+      errors.description = 'Description is required';
+      isValid = false;
+    }
+
+    if (!formData.videoUrl.trim()) {
+      errors.videoUrl = 'Video URL is required';
+      isValid = false;
+    }
+
+    // Optional: Validate campaign selection if needed.
+    // Since it's technically optional but recommended, we can leave it or enforce it. 
+    // Given the previous code had "required" on the select, let's strictly enforce it ONLY if we want to.
+    // The previous code had `required` on the select input, so let's replicate that behavior manually if desired, 
+    // OR just leave it optional as per the dropdown text "Portfolio Video (No Payment)".
+    // Let's stick to the visible "Important for Payment" warning but allow the "No Payment" option.
+    // So NO error for empty campaign.
+
+    setFormErrors(errors);
+    return isValid;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+        return;
+    }
+
     setSubmitting(true);
+    setFormErrors({ title: '', description: '', videoUrl: '', campaign: '' }); // Clear errors
 
     try {
       const payload: any = {
@@ -305,12 +353,16 @@ const InfluencerVideos: React.FC = () => {
           title="Submit New Video"
           size="md"
         >
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <Input
               id="title"
               label="Video Title"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) => {
+                  setFormData({ ...formData, title: e.target.value });
+                  if (formErrors.title) setFormErrors({...formErrors, title: ''});
+              }}
+              error={formErrors.title}
               required
             />
             
@@ -320,8 +372,7 @@ const InfluencerVideos: React.FC = () => {
                 className="input-field"
                 value={selectedCampaignId || ''}
                 onChange={(e) => setSelectedCampaignId(e.target.value || null)}
-                required // Recommend making this required if they have active campaigns? 
-                // Let's keep it optional but warned for now, or users with no campaigns can't submit generic videos.
+                 // removed required
               >
                  <option value="">-- General / Portfolio Video (No Payment) --</option>
                  {activeCampaigns.map(c => (
@@ -333,24 +384,27 @@ const InfluencerVideos: React.FC = () => {
               </p>
             </div>
             <div>
-              <label className="label-text">Description</label>
+              <label className="label-text">Description <span className="text-red-500 ml-1">*</span></label>
               <textarea
-                className="input-field"
+                className={`input-field ${formErrors.description ? 'border-red-500 focus:ring-red-500' : ''}`}
                 rows={4}
                 value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                required
+                onChange={(e) => {
+                  setFormData({ ...formData, description: e.target.value });
+                  if (formErrors.description) setFormErrors({...formErrors, description: ''});
+                }}
               />
+              {formErrors.description && <p className="mt-1 text-sm text-red-600">{formErrors.description}</p>}
             </div>
             <Input
               id="videoUrl"
               label="Video URL or Link"
               value={formData.videoUrl}
-              onChange={(e) =>
-                setFormData({ ...formData, videoUrl: e.target.value })
-              }
+              onChange={(e) => {
+                setFormData({ ...formData, videoUrl: e.target.value });
+                if (formErrors.videoUrl) setFormErrors({...formErrors, videoUrl: ''});
+              }}
+              error={formErrors.videoUrl}
               required
               helperText="YouTube, Instagram, or any video link"
             />
