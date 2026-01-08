@@ -15,6 +15,7 @@ const BrandRegister: React.FC = () => {
   // Toast State
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [emailExistsError, setEmailExistsError] = useState(false);
+  const [websiteError, setWebsiteError] = useState('');
   const emailInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -40,6 +41,10 @@ const BrandRegister: React.FC = () => {
     if (e.target.name === 'email' && emailExistsError) {
         setEmailExistsError(false);
     }
+    // Clear website error on change
+    if (e.target.name === 'website' && websiteError) {
+        setWebsiteError('');
+    }
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -54,10 +59,41 @@ const BrandRegister: React.FC = () => {
       setTimeout(() => emailInputRef.current?.focus(), 100);
   };
 
+  const isValidUrl = (urlString: string) => {
+      // Allow empty if not required (though we might make it required based on request context, usually brand website is important)
+      if (!urlString) return true; 
+      try {
+          // Add https:// if missing for validation attempt
+          let urlToCheck = urlString;
+          if (!/^https?:\/\//i.test(urlString)) {
+              urlToCheck = 'https://' + urlString;
+          }
+          new URL(urlToCheck);
+          return true;
+      } catch (e) {
+          return false;
+      }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setEmailExistsError(false);
+    setWebsiteError('');
+
+    // Pre-validation
+    if (formData.website && !isValidUrl(formData.website)) {
+        setWebsiteError('Please enter a valid website URL (e.g., website.com)');
+        setLoading(false);
+        // Scroll to error?
+        return;
+    }
+    
+    // Normalize URL if needed (optional, but good practice to store with protocol)
+    let finalWebsite = formData.website;
+    if (finalWebsite && !/^https?:\/\//i.test(finalWebsite)) {
+        finalWebsite = 'https://' + finalWebsite;
+    }
 
     try {
       // 1. Sign up with Timeout
@@ -109,7 +145,7 @@ const BrandRegister: React.FC = () => {
       const insertBrandPromise = (supabase.from('brands') as any).insert({
           user_id: userId,
           company_name: formData.companyName,
-          website: formData.website,
+          website: finalWebsite,
           industry: formData.industry,
           description: formData.description,
           location: formData.location,
@@ -284,15 +320,16 @@ const BrandRegister: React.FC = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">Website URL</label>
                       <div className="relative">
                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Globe className="h-4 w-4 text-gray-400" />
+                            <Globe className={`h-4 w-4 ${websiteError ? 'text-red-400' : 'text-gray-400'}`} />
                           </div>
                         <Input
                           id="website"
                           name="website"
                           value={formData.website}
                           onChange={handleChange}
-                          placeholder="https://example.com"
+                          placeholder="example.com"
                           className="pl-10"
+                          error={websiteError}
                         />
                       </div>
                     </div>

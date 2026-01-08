@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Layout } from '@/components/Layout';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus, Megaphone, Calendar, Layers, Search, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 interface Campaign {
@@ -21,6 +21,7 @@ const BrandCampaignsPage = () => {
     const router = useRouter();
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -63,9 +64,13 @@ const BrandCampaignsPage = () => {
         }
     };
 
+    const filteredCampaigns = campaigns.filter(c => 
+        c.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     if (authLoading || loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
+            <div className="flex items-center justify-center min-h-screen bg-gray-50">
                 <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
             </div>
         );
@@ -77,65 +82,135 @@ const BrandCampaignsPage = () => {
                 <title>My Campaigns - Cehpoint</title>
             </Head>
 
-            <div className="flex justify-between items-center mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">My Campaigns</h1>
-                    <p className="mt-1 text-gray-600">Manage your active campaigns and applications</p>
-                </div>
-                <Button onClick={() => router.push('/brand/create-campaign')} className="flex items-center gap-2">
-                    <Plus className="h-4 w-4" /> Create Campaign
-                </Button>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                {campaigns.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500">
-                        No campaigns found. Create your first campaign to get started!
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Header Section */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                    <div>
+                        <h1 className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
+                            My Campaigns
+                        </h1>
+                        <p className="mt-1 text-gray-500 text-sm sm:text-base">
+                            Manage your active campaigns and track influencer applications
+                        </p>
                     </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead className="bg-gray-50 border-b border-gray-100">
-                                <tr>
-                                    <th className="px-6 py-4 font-semibold text-gray-700">Title</th>
-                                    <th className="px-6 py-4 font-semibold text-gray-700">Status</th>
-                                    <th className="px-6 py-4 font-semibold text-gray-700">Budget</th>
-                                    <th className="px-6 py-4 font-semibold text-gray-700">Applications</th>
-                                    <th className="px-6 py-4 font-semibold text-gray-700">Created</th>
-                                    <th className="px-6 py-4 font-semibold text-gray-700">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {campaigns.map((campaign) => (
-                                    <tr key={campaign.id} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-6 py-4 font-medium text-gray-900">{campaign.title}</td>
-                                        <td className="px-6 py-4">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                                campaign.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                                            }`}>
-                                                {campaign.status.toUpperCase()}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-gray-600">₹{campaign.budget?.toLocaleString()}</td>
-                                        <td className="px-6 py-4 text-gray-600">{campaign.application_count}</td>
-                                        <td className="px-6 py-4 text-gray-500 text-sm">
-                                            {new Date(campaign.created_at).toLocaleDateString()}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <Button 
-                                                variant="secondary" 
-                                                size="sm"
-                                                onClick={() => router.push(`/brand/campaigns/${campaign.id}`)}
-                                            >
-                                                Manage
-                                            </Button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    <Button 
+                        onClick={() => router.push('/brand/create-campaign')} 
+                        className="flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-200 transition-all w-full sm:w-auto"
+                    >
+                        <Plus className="h-5 w-5" /> 
+                        Create Campaign
+                    </Button>
+                </div>
+
+                {/* Filters & Search (Optional but good for UI) */}
+                {campaigns.length > 0 && (
+                     <div className="mb-6 flex flex-col sm:flex-row gap-4">
+                        <div className="relative flex-1 max-w-md">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Search className="h-4 w-4 text-gray-400" />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Search campaigns..."
+                                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
                     </div>
                 )}
+
+                {/* Content */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    {campaigns.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                            <div className="bg-indigo-50 p-4 rounded-full mb-4">
+                                <Megaphone className="h-10 w-10 text-indigo-500" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">No campaigns yet</h3>
+                            <p className="text-gray-500 max-w-sm mb-8">
+                                Get started by creating your first campaign to connect with influencers and grow your brand.
+                            </p>
+                            <Button 
+                                onClick={() => router.push('/brand/create-campaign')} 
+                                variant="secondary"
+                                className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                            >
+                                Start Your First Campaign
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-gray-50/50 border-b border-gray-100 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-4">Campaign</th>
+                                        <th className="px-6 py-4">Status</th>
+                                        <th className="px-6 py-4">Budget</th>
+                                        <th className="px-6 py-4">Applications</th>
+                                        <th className="px-6 py-4">Created</th>
+                                        <th className="px-6 py-4">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-50">
+                                    {filteredCampaigns.map((campaign) => (
+                                        <tr key={campaign.id} className="hover:bg-gray-50/80 transition-colors group">
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center">
+                                                    <div>
+                                                        <div className="font-medium text-gray-900">{campaign.title}</div>
+                                                        <div className="text-xs text-gray-400 hidden sm:block">ID: {campaign.id.slice(0, 8)}...</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                                    campaign.status === 'active' 
+                                                        ? 'bg-green-100 text-green-800' 
+                                                        : campaign.status === 'completed'
+                                                        ? 'bg-blue-100 text-blue-800'
+                                                        : 'bg-gray-100 text-gray-800'
+                                                }`}>
+                                                    {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="text-sm text-gray-900 font-medium">₹{campaign.budget?.toLocaleString()}</div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                                                    <Layers className="h-4 w-4 text-gray-400" />
+                                                    {campaign.application_count}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                                                    <Calendar className="h-4 w-4 text-gray-400" />
+                                                    {new Date(campaign.created_at).toLocaleDateString()}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="sm"
+                                                    onClick={() => router.push(`/brand/campaigns/${campaign.id}`)}
+                                                    className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 font-medium gap-1 group-hover:translate-x-1 transition-transform"
+                                                >
+                                                    Manage <ArrowRight className="h-4 w-4" />
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            {filteredCampaigns.length === 0 && (
+                                <div className="p-8 text-center text-gray-500">
+                                    No campaigns match your search.
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
         </Layout>
     );

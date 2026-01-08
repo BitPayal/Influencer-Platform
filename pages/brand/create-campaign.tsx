@@ -6,7 +6,21 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { supabase } from '@/lib/supabase';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { 
+  Loader2, 
+  AlertCircle, 
+  Layout, 
+  FileText, 
+  ListChecks, 
+  IndianRupee, 
+  Calendar, 
+  Sparkles, 
+  Megaphone, 
+  Target, 
+  ArrowLeft,
+  CheckCircle2,
+  Image as ImageIcon
+} from 'lucide-react';
 
 const CreateCampaign: React.FC = () => {
   const router = useRouter();
@@ -299,128 +313,173 @@ const CreateCampaign: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen bg-gray-50/50 pb-20">
       <Head>
         <title>Create Campaign - Cehpoint</title>
       </Head>
 
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                 <Button variant="ghost" className="p-2 -ml-2 text-gray-500 hover:text-gray-900" onClick={() => router.back()}>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                </Button>
-                <div className="h-6 w-px bg-gray-200 mx-2 hidden sm:block"></div>
-                <h1 className="text-xl font-semibold text-gray-900">Create New Campaign</h1>
-              </div>
+      {/* Header */}
+      <div className="bg-white border-b border-gray-100 sticky top-0 z-30 shadow-sm backdrop-blur-md bg-white/80">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
+             <Button variant="ghost" className="p-2 -ml-2 text-gray-400 hover:text-gray-900 rounded-full hover:bg-gray-100" onClick={() => router.back()}>
+                <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
+                Create New Campaign
+            </h1>
           </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         
-        <div className="flex flex-col md:flex-row gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
+             
              {/* Left Column: Context/Help */}
-             <div className="w-full md:w-1/3 space-y-6">
-                <div>
-                     <h2 className="text-lg font-medium text-gray-900">Campaign Details</h2>
-                     <p className="text-sm text-gray-500 mt-1">Provide clear instructions to help influencers understand your goals.</p>
+             <div className="w-full lg:w-1/3 space-y-6 order-2 lg:order-1">
+                <div className="hidden lg:block">
+                     <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <Megaphone className="w-5 h-5 text-indigo-600" />
+                        Campaign Details
+                     </h2>
+                     <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                        Design a compelling campaign to attract the best influencers. Clear instructions lead to better content.
+                     </p>
                 </div>
                 
-                <div className="bg-indigo-50 rounded-lg p-5 border border-indigo-100">
-                    <h3 className="text-sm font-semibold text-indigo-900 mb-2">Tips for a great campaign</h3>
-                    <ul className="text-sm text-indigo-800 space-y-2 list-disc list-inside">
-                        <li>Be specific about the deliverables.</li>
-                        <li>Set a realistic budget for your requirements.</li>
-                        <li>Provide visual examples if possible in the description.</li>
+                {/* Pro Tips Card */}
+                <div className="rounded-2xl p-6 border border-indigo-100 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 shadow-sm relative overflow-hidden">
+                    {/* Decorative background element */}
+                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-indigo-100 rounded-full opacity-50 blur-xl"></div>
+                    
+                    <div className="flex items-center gap-2 mb-4 relative z-10">
+                        <div className="p-2 bg-white rounded-lg shadow-sm text-indigo-600">
+                            <Sparkles className="w-5 h-5" />
+                        </div>
+                        <h3 className="font-semibold text-indigo-900">Pro Tips</h3>
+                    </div>
+                    
+                    <ul className="space-y-4 relative z-10">
+                        <li className="flex gap-3 text-sm text-indigo-900/80">
+                            <Target className="w-4 h-4 text-indigo-500 flex-shrink-0 mt-0.5" />
+                            <span>Be specific about deliverables (e.g., "1 Reel + 1 Story").</span>
+                        </li>
+                        <li className="flex gap-3 text-sm text-indigo-900/80">
+                            <IndianRupee className="w-4 h-4 text-indigo-500 flex-shrink-0 mt-0.5" />
+                            <span>Set a competitive budget to attract top talent.</span>
+                        </li>
+                        <li className="flex gap-3 text-sm text-indigo-900/80">
+                            <ImageIcon className="w-4 h-4 text-indigo-500 flex-shrink-0 mt-0.5" />
+                            <span>Provide visual examples or mood boards in the description.</span>
+                        </li>
                     </ul>
                 </div>
              </div>
 
              {/* Right Column: Form */}
-             <div className="w-full md:w-2/3">
-                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+             <div className="w-full lg:w-2/3 order-1 lg:order-2">
+                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                     {/* Progress Bar (Decorative) */}
-                    <div className="h-1 bg-gray-100 w-full">
-                       <div className="h-full bg-indigo-600 w-1/3"></div>
+                    <div className="h-1.5 bg-gray-50 w-full">
+                       <div className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 w-1/3 rounded-r-full"></div>
                     </div>
 
-                    <div className="p-6 md:p-8">
+                    <div className="p-5 md:p-8">
                          {error && (
-                            <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-lg flex items-start gap-3 text-red-700">
+                            <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3 text-red-700 animate-in fade-in slide-in-from-top-2">
                                 <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
                                 <div className="text-sm">
-                                    <span className="font-semibold block">Error</span>
+                                    <span className="font-semibold block mb-1">Unable to create campaign</span>
                                     {error}
                                 </div>
                             </div>
                         )}
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="space-y-5">
-                                <Input
-                                    id="title"
-                                    name="title"
-                                    label="Campaign Title"
-                                    value={formData.title}
-                                    onChange={handleChange}
-                                    required
-                                    placeholder="e.g. Summer Collection Launch 2024"
-                                    className="text-lg font-medium"
-                                />
+                        <form onSubmit={handleSubmit} className="space-y-8">
+                            
+                            {/* Section 1: Basic Info */}
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">Campaign Title <span className="text-red-500">*</span></label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                            <Layout className="h-5 w-5 text-gray-400" />
+                                        </div>
+                                        <Input
+                                            id="title"
+                                            name="title"
+                                            value={formData.title}
+                                            onChange={handleChange}
+                                            required
+                                            placeholder="e.g. Summer Collection Launch 2024"
+                                            className="pl-11 h-12 text-base font-medium"
+                                        />
+                                    </div>
+                                </div>
                                 
-                                <div className="space-y-1.5">
-                                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                                <div>
+                                    <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">
                                         Description <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative">
+                                        <div className="absolute top-3.5 left-3.5 pointer-events-none">
+                                            <FileText className="h-5 w-5 text-gray-400" />
+                                        </div>
                                         <textarea
                                             id="description"
                                             name="description"
                                             rows={5}
-                                            className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm resize-none p-3"
+                                            className="block w-full rounded-xl border-gray-300 pl-11 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base leading-relaxed resize-none py-3"
                                             value={formData.description}
                                             onChange={handleChange}
                                             required
                                             placeholder="Describe your brand, your goals for this campaign, and what you're promoting..."
                                         />
-                                        <div className="absolute bottom-3 right-3 text-xs text-gray-400">
+                                        <div className="absolute bottom-3 right-3 text-xs font-medium text-gray-400 bg-white px-2 py-1 rounded-md border border-gray-100 shadow-sm">
                                             {formData.description.length} chars
                                         </div>
                                     </div>
                                 </div>
+                            </div>
 
-                                <div className="space-y-1.5">
-                                    <label htmlFor="requirements" className="block text-sm font-medium text-gray-700">
+                            <hr className="border-gray-100" />
+
+                            {/* Section 2: Requirements */}
+                            <div className="space-y-6">
+                                <div>
+                                    <label htmlFor="requirements" className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">
                                         Requirements
                                     </label>
-                                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                    <div className="relative">
+                                        <div className="absolute top-3.5 left-3.5 pointer-events-none">
+                                            <ListChecks className="h-5 w-5 text-gray-400" />
+                                        </div>
                                         <textarea
                                             id="requirements"
                                             name="requirements"
-                                            rows={3}
-                                            className="block w-full border-0 bg-transparent p-0 text-sm placeholder-gray-500 focus:ring-0"
+                                            rows={4}
+                                            className="block w-full rounded-xl border-gray-300 pl-11 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm leading-relaxed"
                                             value={formData.requirements}
                                             onChange={handleChange}
                                             placeholder="• Must have 10k+ followers&#10;• Post 1 Reel and 1 Story&#10;• Tag @yourbrand in the first line"
                                         />
                                     </div>
-                                    <p className="text-xs text-gray-500">List specific deliverables or criteria for approval.</p>
+                                    <p className="text-xs text-gray-500 mt-2 ml-1">List specific deliverables or criteria for approval.</p>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-1.5">
-                                        <label htmlFor="budget" className="block text-sm font-medium text-gray-700">
+                                    <div>
+                                        <label htmlFor="budget" className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">
                                             Budget <span className="text-red-500">*</span>
                                         </label>
                                         <div className="relative rounded-md shadow-sm">
-                                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                                <span className="text-gray-500 sm:text-sm">₹</span>
+                                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                                                <IndianRupee className="h-5 w-5 text-gray-500" />
                                             </div>
                                             <input
                                                 type="number"
                                                 name="budget"
                                                 id="budget"
-                                                className="block w-full rounded-md border-gray-300 pl-7 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-10"
+                                                className="block w-full rounded-xl border-gray-300 pl-11 focus:border-indigo-500 focus:ring-indigo-500 h-12 text-base font-semibold text-gray-900"
                                                 placeholder="0.00"
                                                 value={formData.budget}
                                                 onChange={handleChange}
@@ -429,32 +488,44 @@ const CreateCampaign: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    <div className="space-y-1.5">
-                                         <label htmlFor="deadline" className="block text-sm font-medium text-gray-700">
+                                    <div>
+                                         <label htmlFor="deadline" className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">
                                             Deadline
                                         </label>
-                                        <input
-                                            type="date"
-                                            name="deadline"
-                                            id="deadline"
-                                            className="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-10"
-                                            value={formData.deadline}
-                                            onChange={handleChange}
-                                        />
+                                        <div className="relative">
+                                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                                                <Calendar className="h-5 w-5 text-gray-400" />
+                                            </div>
+                                            <input
+                                                type="date"
+                                                name="deadline"
+                                                id="deadline"
+                                                className="block w-full rounded-xl border-gray-300 pl-11 focus:border-indigo-500 focus:ring-indigo-500 h-12 text-gray-900"
+                                                value={formData.deadline}
+                                                onChange={handleChange}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             
-                            <div className="pt-6 border-t border-gray-100 flex items-center justify-end gap-3">
-                                <Button type="button" variant="ghost" onClick={() => router.back()}>Cancel</Button>
-                                <Button type="submit" variant="primary" disabled={loading} className="px-8 shadow-md hover:shadow-lg transition-shadow">
+                            <div className="pt-6 flex items-center justify-end gap-3">
+                                <Button type="button" variant="ghost" onClick={() => router.back()} className="h-12 px-6">Cancel</Button>
+                                <Button 
+                                    type="submit" 
+                                    disabled={loading} 
+                                    className="h-12 px-8 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-200 transition-all transform active:scale-95"
+                                >
                                     {loading ? (
                                         <>
-                                            <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                                            <Loader2 className="animate-spin -ml-1 mr-2 h-5 w-5" />
                                             {loadingStatus || 'Creating Campaign...'}
                                         </>
                                     ) : (
-                                        'Create Campaign'
+                                        <>
+                                            Create Campaign
+                                            <CheckCircle2 className="ml-2 h-5 w-5 opacity-90" />
+                                        </>
                                     )}
                                 </Button>
                             </div>

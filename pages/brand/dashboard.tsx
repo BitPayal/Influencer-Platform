@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
 import { Layout } from '@/components/Layout';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw, TrendingUp, Users, CreditCard, Plus, Search } from 'lucide-react';
 
 const BrandDashboard: React.FC = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -212,71 +212,118 @@ const BrandDashboard: React.FC = () => {
         <title>Brand Dashboard - Cehpoint</title>
       </Head>
 
-      <div className="animate-fade-in">
-        <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="animate-fade-in space-y-8">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-100 pb-6">
             <div>
-                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
-                <p className="mt-1 text-gray-600">Welcome back, {profile?.company_name || 'Partner'}!</p>
+                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Dashboard</h1>
+                <p className="mt-2 text-gray-600 text-lg">
+                    Welcome back, <span className="font-semibold text-indigo-600">{profile?.company_name || 'Partner'}</span>!
+                </p>
             </div>
-            <div className="text-sm text-gray-500 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 text-sm font-medium text-indigo-700 bg-indigo-50 px-4 py-2 rounded-full border border-indigo-100 shadow-sm">
+                 <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
                 {new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Active Campaigns Card */}
             <div 
-                className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-md hover:border-indigo-100 transition-all duration-200 group"
+                className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden"
                 onClick={() => router.push('/brand/campaigns')}
             >
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-700 group-hover:text-indigo-600 transition-colors">Active Campaigns</h3>
-                    <div className="h-8 w-8 bg-indigo-50 rounded-full flex items-center justify-center">
-                        <span className="text-indigo-600 text-xs">●</span>
-                    </div>
+                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                     <TrendingUp className="w-32 h-32 text-indigo-600 transform rotate-12 translate-x-8 -translate-y-8" />
                 </div>
-                <p className="text-4xl font-extrabold text-gray-900 mt-2">{stats.activeCampaigns}</p>
-                <p className="text-sm text-gray-400 mt-2">Live and running</p>
-            </div>
-            
-            <div 
-                className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-md hover:border-orange-100 transition-all duration-200 group"
-                onClick={() => router.push('/brand/applications')}
-            >
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-700 group-hover:text-orange-600 transition-colors">Pending Applications</h3>
-                     <div className="h-8 w-8 bg-orange-50 rounded-full flex items-center justify-center">
-                        <span className="text-orange-600 text-xs">●</span>
+                <div className="flex items-center justify-between mb-6 relative z-10">
+                    <div className="p-3.5 bg-indigo-50 rounded-2xl group-hover:bg-indigo-600 transition-colors duration-300 shadow-sm">
+                        <TrendingUp className="w-6 h-6 text-indigo-600 group-hover:text-white transition-colors" />
                     </div>
+                    <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-green-700 bg-green-50 px-3 py-1 rounded-full border border-green-100">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                        Live
+                    </span>
                 </div>
-                <p className="text-4xl font-extrabold text-gray-900 mt-2">{stats.pendingApplications}</p>
-                 <p className="text-sm text-gray-400 mt-2">Waiting for approval</p>
+                <div className="relative z-10">
+                     <p className="text-sm font-medium text-gray-500 mb-1">Active Campaigns</p>
+                     <h3 className="text-4xl font-bold text-gray-900 tracking-tight">{stats.activeCampaigns}</h3>
+                </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-700">Total Spent</h3>
-                     <div className="h-8 w-8 bg-green-50 rounded-full flex items-center justify-center">
-                        <span className="text-green-600 text-xs">₹</span>
+            {/* Pending Applications Card */}
+            <div 
+                className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden"
+                onClick={() => router.push('/brand/applications')}
+            >
+                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                     <Users className="w-32 h-32 text-orange-600 transform rotate-12 translate-x-8 -translate-y-8" />
+                </div>
+                <div className="flex items-center justify-between mb-6 relative z-10">
+                    <div className="p-3.5 bg-orange-50 rounded-2xl group-hover:bg-orange-600 transition-colors duration-300 shadow-sm">
+                        <Users className="w-6 h-6 text-orange-600 group-hover:text-white transition-colors" />
+                    </div>
+                     {stats.pendingApplications > 0 && (
+                        <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-orange-700 bg-orange-50 px-3 py-1 rounded-full border border-orange-100 animate-pulse">
+                            Approvals Pending
+                        </span>
+                     )}
+                </div>
+                <div className="relative z-10">
+                     <p className="text-sm font-medium text-gray-500 mb-1">Pending Applications</p>
+                     <h3 className="text-4xl font-bold text-gray-900 tracking-tight">{stats.pendingApplications}</h3>
+                </div>
+            </div>
+
+            {/* Total Spent Card */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 group relative overflow-hidden">
+                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                     <CreditCard className="w-32 h-32 text-emerald-600 transform rotate-12 translate-x-8 -translate-y-8" />
+                </div>
+                <div className="flex items-center justify-between mb-6 relative z-10">
+                    <div className="p-3.5 bg-emerald-50 rounded-2xl group-hover:bg-emerald-600 transition-colors duration-300 shadow-sm">
+                        <CreditCard className="w-6 h-6 text-emerald-600 group-hover:text-white transition-colors" />
                     </div>
                 </div>
-                <p className="text-4xl font-extrabold text-gray-900 mt-2">₹{stats.totalSpent.toLocaleString()}</p>
-                 <p className="text-sm text-gray-400 mt-2">Lifetime investment</p>
+                <div className="relative z-10">
+                     <p className="text-sm font-medium text-gray-500 mb-1">Total Spent</p>
+                     <h3 className="text-4xl font-bold text-gray-900 tracking-tight">₹{stats.totalSpent.toLocaleString()}</h3>
+                </div>
             </div>
         </div>
 
-        <div className="border-2 border-dashed border-gray-200 rounded-2xl h-80 flex flex-col items-center justify-center bg-gray-50 hover:bg-white hover:border-indigo-200 transition-all duration-300">
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Get Started</h2>
-            <p className="text-gray-500 mb-8 max-w-sm text-center">Ready to grow your brand? Launch a new campaign or connect with top influencers today.</p>
-            <div className="flex flex-wrap justify-center gap-4">
-               <Button variant="primary" onClick={() => router.push('/brand/create-campaign')} className="shadow-lg shadow-indigo-200">
-                   Create Campaign
-               </Button>
-               <Button variant="secondary" onClick={() => router.push('/brand/search')} className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700">
-                   Find Influencers
-               </Button>
-               <Button variant="secondary" onClick={() => router.push('/brand/campaigns')} className="border-indigo-200 text-indigo-600 hover:bg-indigo-50">
-                   Manage Campaigns
-               </Button>
+        {/* Quick Actions Banner */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-700 via-indigo-600 to-purple-700 shadow-xl">
+            {/* Abstract Background Shapes */}
+            <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-64 h-64 bg-purple-500 opacity-20 rounded-full blur-3xl"></div>
+            
+            <div className="relative z-10 px-8 py-10 sm:px-10 sm:py-12 flex flex-col lg:flex-row items-center justify-between gap-8">
+                <div className="text-center lg:text-left max-w-2xl">
+                    <h2 className="text-3xl font-extrabold text-white mb-4 tracking-tight">Ready to expand your reach?</h2>
+                    <p className="text-indigo-100 text-lg leading-relaxed">
+                        Launch a new campaign today or discover the perfect influencers to elevate your brand's presence.
+                    </p>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+                     <Button 
+                        onClick={() => router.push('/brand/create-campaign')} 
+                        className="bg-white text-indigo-700 hover:bg-gray-50 border-transparent shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all font-bold px-8 py-4 h-auto text-base rounded-xl w-full sm:w-auto justify-center"
+                     >
+                        <Plus className="w-5 h-5 mr-2 stroke-[3]" />
+                        Create Campaign
+                    </Button>
+                     <Button 
+                        variant="ghost"
+                        onClick={() => router.push('/brand/search')} 
+                        className="bg-indigo-800/40 text-white hover:bg-indigo-800/50 border border-indigo-400/30 shadow-lg backdrop-blur-md font-semibold px-8 py-4 h-auto text-base rounded-xl w-full sm:w-auto justify-center"
+                     >
+                        <Search className="w-5 h-5 mr-2" />
+                        Find Influencers
+                    </Button>
+                </div>
             </div>
         </div>
       </div>
