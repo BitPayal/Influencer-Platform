@@ -316,44 +316,48 @@ const InfluencerVideos: React.FC = () => {
               </Button>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredVideos.map((video) => (
-                  <TableRow key={video.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{video.title}</div>
-                        <div className="text-sm text-gray-500">
-                          {video.description.substring(0, 60)}...
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{formatDateTime(video.submitted_at)}</TableCell>
-                    <TableCell>{getStatusBadge(video.approval_status)}</TableCell>
-                    <TableCell>
-                      {video.video_url && (
-                        <a
-                          href={video.video_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary-600 hover:text-primary-700"
-                        >
-                          View
-                        </a>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="overflow-x-auto">
+              <div className="min-w-[800px] align-middle inline-block min-w-full">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Submitted</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredVideos.map((video) => (
+                      <TableRow key={video.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{video.title}</div>
+                            <div className="text-sm text-gray-500">
+                              {video.description.substring(0, 60)}...
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{formatDateTime(video.submitted_at)}</TableCell>
+                        <TableCell>{getStatusBadge(video.approval_status)}</TableCell>
+                        <TableCell>
+                          {video.video_url && (
+                            <a
+                              href={video.video_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary-600 hover:text-primary-700"
+                            >
+                              View
+                            </a>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           )}
         </Card>
 
