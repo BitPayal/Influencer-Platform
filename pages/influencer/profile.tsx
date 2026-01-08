@@ -5,6 +5,11 @@ import { supabase } from '@/lib/supabase';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { Database } from '@/types/supabase';
+import { SupabaseClient } from '@supabase/supabase-js';
+
+// Create a typed client for this file
+const typedSupabase = supabase as unknown as SupabaseClient<Database>;
 
 const InfluencerProfile = () => {
   const { user } = useAuth();
@@ -23,7 +28,7 @@ const InfluencerProfile = () => {
     const fetchProfile = async () => {
       if (!user) return;
       try {
-        const { data, error } = await supabase
+        const { data, error } = await typedSupabase
           .from('influencers')
           .select('*')
           .eq('user_id', user.id)
@@ -63,7 +68,7 @@ const InfluencerProfile = () => {
     setMessage(null);
 
     try {
-      const { error } = await supabase
+      const { error } = await typedSupabase
         .from('influencers')
         .update({
           full_name: formData.full_name,
