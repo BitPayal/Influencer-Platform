@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Toast } from '@/components/ui/Toast';
 
 const CampaignDetails: React.FC = () => {
     const router = useRouter();
@@ -16,6 +17,7 @@ const CampaignDetails: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [applying, setApplying] = useState(false);
     const [applicationStatus, setApplicationStatus] = useState<string | null>(null);
+    const [toast, setToast] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
     // Application Form
     const [bidAmount, setBidAmount] = useState('');
@@ -84,6 +86,7 @@ const CampaignDetails: React.FC = () => {
     const handleApply = async (e: React.FormEvent) => {
         e.preventDefault();
         setApplying(true);
+        setToast(null);
 
         try {
              const { data: influencer } = await supabase
@@ -93,8 +96,10 @@ const CampaignDetails: React.FC = () => {
                 .single() as { data: any | null };
 
             if (!influencer) {
-                alert("Please complete your influencer profile first.");
-                router.push('/influencer/profile'); // Assuming profile page exists
+                setToast({ type: 'error', message: "Please complete your influencer profile first." });
+                setTimeout(() => {
+                    router.push('/influencer/profile');
+                }, 2000);
                 return;
             }
 
@@ -109,14 +114,14 @@ const CampaignDetails: React.FC = () => {
             if (error) throw error;
 
             setApplicationStatus('pending');
-            alert("Application submitted successfully!");
+            setToast({ type: 'success', message: "Application submitted successfully!" });
 
         } catch (error: any) {
             console.error("Error applying:", error);
             if (error.code === '23505') { // Unique violation
-                alert("You have already applied to this campaign.");
+                setToast({ type: 'error', message: "You have already applied to this campaign." });
             } else {
-                alert("Failed to submit application.");
+                setToast({ type: 'error', message: "Failed to submit application. Please try again." });
             }
         } finally {
             setApplying(false);
@@ -131,6 +136,13 @@ const CampaignDetails: React.FC = () => {
             <Head>
                 <title>{campaign.title} - Cehpoint</title>
             </Head>
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
 
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <Button variant="ghost" onClick={() => router.back()} className="mb-6">← Back to Campaigns</Button>
