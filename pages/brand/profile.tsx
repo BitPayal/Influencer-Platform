@@ -40,7 +40,7 @@ const BrandProfile = () => {
         if (error) throw error;
 
         if (data) {
-          const brandData = data as unknown as BrandProfile;
+          const brandData = data as any as BrandProfile;
           setFormData({
             company_name: brandData.company_name || '',
             website: brandData.website || '',
@@ -80,7 +80,7 @@ const BrandProfile = () => {
           industry: formData.industry,
           contact_person: formData.contact_person,
           phone_number: formData.phone_number,
-        })
+        } as any)
         .eq('user_id', user.id);
 
       if (error) throw error;
