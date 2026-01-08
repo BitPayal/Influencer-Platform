@@ -13,6 +13,7 @@ import { VideoSubmission, Influencer } from '@/types';
 import { Plus, Video } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils';
 import Head from 'next/head';
+import { Toast } from '@/components/ui/Toast';
 
 const InfluencerVideos: React.FC = () => {
   const { user } = useAuth();
@@ -36,6 +37,7 @@ const InfluencerVideos: React.FC = () => {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [activeCampaigns, setActiveCampaigns] = useState<any[]>([]); // New state
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -177,7 +179,7 @@ const InfluencerVideos: React.FC = () => {
 
       if (error) throw error;
 
-      alert('Video submitted successfully! It will be reviewed shortly.');
+      setMessage({ type: 'success', text: 'Video submitted successfully! It will be reviewed shortly.' });
       setModalOpen(false);
       setFormData({ title: '', description: '', videoUrl: '' });
       setSelectedCampaignId(null); // Reset
@@ -185,7 +187,7 @@ const InfluencerVideos: React.FC = () => {
       router.replace('/influencer/videos', undefined, { shallow: true });
       fetchData();
     } catch (error: any) {
-      alert(error.message || 'Failed to submit video');
+      setMessage({ type: 'error', text: error.message || 'Failed to submit video' });
     } finally {
       setSubmitting(false);
     }
@@ -241,6 +243,14 @@ const InfluencerVideos: React.FC = () => {
       <Head>
         <title>My Videos - Cehpoint Marketing Partners</title>
       </Head>
+
+      {message && (
+        <Toast
+          message={message.text}
+          type={message.type}
+          onClose={() => setMessage(null)}
+        />
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mb-8">
