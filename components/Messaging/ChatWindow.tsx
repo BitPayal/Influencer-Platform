@@ -5,13 +5,15 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Message } from '@/types';
+import { ArrowLeft } from 'lucide-react';
 
 interface ChatWindowProps {
     recipientId: string;
     recipientName: string;
+    onBack?: () => void;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ recipientId, recipientName }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ recipientId, recipientName, onBack }) => {
     const { user } = useAuth();
     const [isOnline, setIsOnline] = useState(false);
     const [messages, setMessages] = useState<any[]>([]);
@@ -107,6 +109,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ recipientId, recipientName }) =
             {/* Header */}
             <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-white/80 backdrop-blur-sm z-10 sticky top-0">
                 <div className="flex items-center gap-3">
+                    {onBack && (
+                        <button 
+                            onClick={onBack}
+                            className="md:hidden p-2 -ml-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                        </button>
+                    )}
                     <div className="h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold shadow-md">
                         {recipientName.charAt(0).toUpperCase()}
                     </div>

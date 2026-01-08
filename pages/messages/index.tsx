@@ -197,9 +197,11 @@ const Messages: React.FC = () => {
                 <title>Messages - Cehpoint</title>
             </Head>
 
-            <div className="h-[calc(100vh-140px)] flex gap-6">
+            <div className="h-[calc(100vh-140px)] flex gap-6 relative">
                 {/* Sidebar */}
-                <div className="w-1/3 min-w-[300px] bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
+                <div className={`w-full md:w-1/3 min-w-[300px] bg-white rounded-2xl shadow-sm border border-gray-100 flex-col overflow-hidden ${
+                    selectedUserId ? 'hidden md:flex' : 'flex'
+                }`}>
                     <div className="p-4 border-b border-gray-50 bg-white z-10">
                         <h2 className="text-xl font-bold text-gray-900 mb-4">Messages</h2>
                         <div className="relative">
@@ -280,11 +282,14 @@ const Messages: React.FC = () => {
                 </div>
 
                 {/* Chat Area */}
-                <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+                <div className={` md:flex-1 w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex-col ${
+                    selectedUserId ? 'flex absolute inset-0 md:static z-20' : 'hidden md:flex'
+                }`}>
                     {selectedUserId ? (
                         <ChatWindow 
                             recipientId={selectedUserId} 
                             recipientName={selectedUserName} 
+                            onBack={() => setSelectedUserId(null)}
                         />
                     ) : (
                         <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-gray-50/50">
