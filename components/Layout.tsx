@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { Button } from './ui/Button';
+import { UserMenu } from './UserMenu';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -121,26 +122,32 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
+          <div className="flex justify-between h-14 sm:h-16 items-center">
+            {/* Left Side: Hamburger & Brand */}
+            <div className="flex items-center gap-2 sm:gap-4">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+                className="lg:hidden p-2 -ml-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:ring-2 focus:ring-inset focus:ring-primary-500"
               >
+                <span className="sr-only">Open menu</span>
                 {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </button>
-              <h1 className="text-xl font-bold text-primary-600 ml-2 lg:ml-0">
-                Cehpoint Influence Partners
-              </h1>
+              
+              <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-2">
+                <h1 className="text-lg sm:text-xl font-bold text-primary-600 truncate leading-tight">
+                  <span className="block sm:hidden">Cehpoint</span>
+                  <span className="hidden sm:block">Cehpoint Influence Partners</span>
+                </h1>
+              </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700 font-medium">
-                {profileName || user?.email}
-              </span>
-              <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
+
+            {/* Right Side: User Menu */}
+            <div className="flex items-center">
+              <UserMenu 
+                user={user} 
+                profileName={profileName} 
+                onSignOut={handleSignOut} 
+              />
             </div>
           </div>
         </div>
