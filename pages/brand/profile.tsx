@@ -5,6 +5,12 @@ import { supabase } from '@/lib/supabase';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { Database } from '@/types/supabase';
+import { SupabaseClient } from '@supabase/supabase-js';
+
+// Create a typed client. Since the global instance is untyped, we cast it here for this file.
+// Alternatively, we could update lib/supabase.ts, but that might affect other files.
+const typedSupabase = supabase as unknown as SupabaseClient<Database>;
 
 interface BrandProfile {
   company_name: string | null;
@@ -31,7 +37,7 @@ const BrandProfile = () => {
     const fetchProfile = async () => {
       if (!user) return;
       try {
-        const { data, error } = await supabase
+        const { data, error } = await typedSupabase
           .from('brands')
           .select('*')
           .eq('user_id', user.id)
@@ -40,7 +46,7 @@ const BrandProfile = () => {
         if (error) throw error;
 
         if (data) {
-          const brandData = data as any as BrandProfile;
+          const brandData = data;
           setFormData({
             company_name: brandData.company_name || '',
             website: brandData.website || '',
@@ -72,7 +78,7 @@ const BrandProfile = () => {
     setMessage(null);
 
     try {
-      const { error } = await supabase
+      const { error } = await typedSupabase
         .from('brands')
         .update({
           company_name: formData.company_name,
@@ -80,7 +86,7 @@ const BrandProfile = () => {
           industry: formData.industry,
           contact_person: formData.contact_person,
           phone_number: formData.phone_number,
-        } as any)
+        })
         .eq('user_id', user.id);
 
       if (error) throw error;
