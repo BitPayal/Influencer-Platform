@@ -425,44 +425,44 @@ const Home: NextPage = () => {
 
             {/* Quality-Based Payment Explanation */}
             <div id="pricing" className="max-w-4xl mx-auto mt-16 scroll-mt-24">
-              <div className="bg-white rounded-2xl border-2 border-orange-300 p-10 shadow-xl">
+              <div className="bg-white rounded-2xl border-2 border-orange-300 p-5 sm:p-10 shadow-xl">
                 <div className="flex items-start gap-4 mb-6">
-                  <div className="bg-orange-100 p-3 rounded-lg">
-                    <svg className="h-8 w-8 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="bg-orange-100 p-3 rounded-lg flex-shrink-0">
+                    <svg className="h-6 w-6 sm:h-8 sm:w-8 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-2xl font-black text-gray-900 mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-xl sm:text-2xl font-black text-gray-900 mb-3 leading-tight">
                       💡 How Your Payment Rate is Decided
                     </h3>
-                    <p className="text-gray-700 leading-relaxed mb-4">
+                    <p className="text-sm sm:text-base text-gray-700 leading-relaxed mb-6">
                       <strong className="text-orange-600">We don't pay fixed amounts.</strong> Your earnings are based on the quality of your work:
                     </p>
-                    <ol className="space-y-3 text-gray-700 ml-4">
+                    <ol className="space-y-4 text-gray-700">
                       <li className="flex items-start gap-3">
-                        <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">1</span>
-                        <span><strong>Submit your first video</strong> - Following our guidelines and sample scripts</span>
+                        <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">1</span>
+                        <span className="text-sm sm:text-base"><strong>Submit your first video</strong> - Following our guidelines and sample scripts</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">2</span>
-                        <span><strong>We analyze quality</strong> - Video production, editing, presentation, authenticity</span>
+                        <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">2</span>
+                        <span className="text-sm sm:text-base"><strong>We analyze quality</strong> - Video production, editing, presentation, authenticity</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">3</span>
-                        <span><strong>We review your profile</strong> - Engagement rate, audience demographics, reach</span>
+                        <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">3</span>
+                        <span className="text-sm sm:text-base"><strong>We review your profile</strong> - Engagement rate, audience demographics, reach</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">4</span>
-                        <span><strong>You get YOUR custom rate</strong> - Typically ₹2,000 to ₹10,000 per video based on your quality</span>
+                        <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">4</span>
+                        <span className="text-sm sm:text-base"><strong>You get YOUR custom rate</strong> - Typically ₹2,000 to ₹10,000 per video based on your quality</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <span className="bg-green-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">5</span>
-                        <span><strong>All future videos</strong> - Earn at your assigned rate + 5% revenue share on leads you generate</span>
+                        <span className="bg-green-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">5</span>
+                        <span className="text-sm sm:text-base"><strong>All future videos</strong> - Earn at your assigned rate + 5% revenue share on leads you generate</span>
                       </li>
                     </ol>
-                    <div className="bg-orange-50 p-6 rounded-xl mt-6 border-l-4 border-orange-500">
-                      <p className="text-gray-800 font-semibold">
+                    <div className="bg-orange-50 p-4 sm:p-6 rounded-xl mt-6 border-l-4 border-orange-500">
+                      <p className="text-sm sm:text-base text-gray-800 font-semibold">
                         <strong>Higher quality content = Higher earnings.</strong> This ensures fair payment and rewards influencers who create professional, effective marketing videos.
                       </p>
                     </div>
