@@ -154,7 +154,7 @@ const CampaignDetails: React.FC = () => {
             )}
 
             {/* Header / Nav */}
-            <div className="bg-white border-b border-gray-200 sticky top-14 z-20 shadow-sm">
+            <div className="bg-white border-b border-gray-200">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                      <Button variant="ghost" onClick={() => router.back()} className="text-gray-500 hover:text-gray-900 -ml-4">
                         <ArrowLeft className="w-4 h-4 mr-2" />
