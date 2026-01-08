@@ -5,6 +5,7 @@ import Head from 'next/head';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Toast } from '@/components/ui/Toast';
 import { supabase } from '@/lib/supabase';
 import { 
   Loader2, 
@@ -28,6 +29,7 @@ const CreateCampaign: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState("");
   const [brandId, setBrandId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -46,35 +48,6 @@ const CreateCampaign: React.FC = () => {
     }
   }, [user, authLoading, router]);
 
-  // Helper needs to be available to both effects
-  const withTimeout = async (promise: Promise<any>, ms: number, msg: string) => {
-        let timeoutId: NodeJS.Timeout;
-        const TIMEOUT_SENTINEL = { __timeout: true }; 
-
-        const timeoutPromise = new Promise((resolve) => {
-            timeoutId = setTimeout(() => {
-                console.log(`Timeout triggered: ${msg}`);
-                resolve(TIMEOUT_SENTINEL);
-            }, ms);
-        });
-
-        try {
-            const result = await Promise.race([promise, timeoutPromise]);
-            clearTimeout(timeoutId!);
-            
-            // Return error object mimicking Supabase structure instead of throwing
-            if (result === TIMEOUT_SENTINEL) {
-                return { data: null, error: { message: msg } };
-            }
-            
-            return result;
-        } catch (error: any) {
-            clearTimeout(timeoutId!);
-             // Return normalized error object
-            return { data: null, error: error?.message ? error : { message: "Unknown error occurred" } };
-        }
-    };
-
   // Initial Brand Fetch
   useEffect(() => {
     if (authLoading) return;
@@ -82,7 +55,6 @@ const CreateCampaign: React.FC = () => {
         if (!user) return;
         console.log("Fetching brand for user:", user.id);
         try {
-            // FIX: Remove timeout wrapper for simple reads
             const { data, error } = await supabase
                 .from('brands')
                 .select('id')
@@ -263,6 +235,8 @@ const CreateCampaign: React.FC = () => {
         await uploadCampaignWithRetry();
 
         console.log("Campaign created successfully!");
+        setToast({ type: 'success', message: 'Campaign created successfully!' });
+        
         // Reset form
         setFormData({
             title: '',
@@ -272,8 +246,11 @@ const CreateCampaign: React.FC = () => {
             deadline: ''
         });
         
-        alert("Campaign created successfully!");
-        router.push('/brand/campaigns'); // Redirect to list
+        // Delay redirect to show toast
+        setTimeout(() => {
+            router.push('/brand/campaigns');
+        }, 1500);
+
     })();
 
     // Race against hard timeout
@@ -283,7 +260,6 @@ const CreateCampaign: React.FC = () => {
             new Promise((_, reject) => setTimeout(() => reject(new Error("Operation timed out (UI). Please check your internet connection and try again.")), TIMEOUT_MS))
         ]);
     } catch (error: any) {
-        // Use warn instead of error to avoid Next.js overlay for expected timeouts
         console.warn("Error creating campaign:", error);
         
         if (mounted.current) {
@@ -300,8 +276,6 @@ const CreateCampaign: React.FC = () => {
         }
     }
   };
-
-
 
   if (authLoading) {
     return (
@@ -535,6 +509,15 @@ const CreateCampaign: React.FC = () => {
              </div>
         </div>
       </div>
+      
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          type={toast.type}
+          message={toast.message}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 };

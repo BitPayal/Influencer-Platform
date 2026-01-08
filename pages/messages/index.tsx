@@ -289,7 +289,10 @@ const Messages: React.FC = () => {
                         <ChatWindow 
                             recipientId={selectedUserId} 
                             recipientName={selectedUserName} 
-                            onBack={() => setSelectedUserId(null)}
+                            onBack={() => {
+                                setSelectedUserId(null);
+                                router.push('/messages', undefined, { shallow: true });
+                            }}
                         />
                     ) : (
                         <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-gray-50/50">
