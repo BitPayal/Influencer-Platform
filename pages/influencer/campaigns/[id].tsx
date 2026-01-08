@@ -173,26 +173,34 @@ const CampaignDetails: React.FC = () => {
                         <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200">
                             <div className="flex justify-between items-start gap-4 mb-6">
                                 <div className="flex items-center gap-4">
-                                     <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 flex items-center justify-center text-2xl font-bold text-indigo-600 shadow-inner">
+                                     <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 flex items-center justify-center text-2xl font-bold text-indigo-600 shadow-inner shrink-0">
                                         {campaign.brands?.company_name?.charAt(0).toUpperCase() || 'B'}
                                      </div>
                                      <div>
-                                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-1">{campaign.title}</h1>
-                                         <div className="flex items-center text-gray-500 text-sm font-medium">
-                                             <span>by {campaign.brands?.company_name}</span>
-                                             <span className="mx-2">•</span>
-                                             <span className="text-indigo-600">{campaign.brands?.industry || 'Brand Partner'}</span>
+                                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-1">
+                                             {campaign.title && campaign.title.length > 2 ? campaign.title : 'Untitled Campaign'}
+                                         </h1>
+                                         <div className="flex items-center text-gray-500 text-sm font-medium flex-wrap gap-2">
+                                             <span>by {campaign.brands?.company_name || 'Brand Partner'}</span>
+                                             <span className="hidden sm:inline mx-1">•</span>
+                                             <span className="text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full text-xs">
+                                                 {campaign.brands?.industry || 'Brand Partner'}
+                                             </span>
                                          </div>
                                      </div>
                                 </div>
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200 shadow-sm">
+                                <span className="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200 shadow-sm whitespace-nowrap">
                                     Active Campaign
                                 </span>
                             </div>
 
                             <div className="prose prose-indigo max-w-none text-gray-600 leading-relaxed">
                                 <h3 className="text-lg font-bold text-gray-900 mb-2">About the Campaign</h3>
-                                <p className="mb-0">{campaign.description}</p>
+                                <p className="mb-0">
+                                    {campaign.description && campaign.description.length > 5 
+                                        ? campaign.description 
+                                        : "No detailed description provided by the brand. Please check the requirements below for more information."}
+                                </p>
                             </div>
                         </div>
 
@@ -205,7 +213,7 @@ const CampaignDetails: React.FC = () => {
                                 <h2 className="text-xl font-bold text-gray-900">Requirements & Deliverables</h2>
                              </div>
                             
-                            {campaign.requirements ? (
+                            {campaign.requirements && campaign.requirements.length > 3 ? (
                                 <div className="space-y-4">
                                     <div className="bg-orange-50/50 rounded-xl p-5 border border-orange-100/50">
                                         <div className="prose prose-orange max-w-none text-gray-700">
@@ -218,7 +226,18 @@ const CampaignDetails: React.FC = () => {
                                     </div>
                                 </div>
                             ) : (
-                                <p className="text-gray-500 italic">No specific requirements listed.</p>
+                                <div className="space-y-4">
+                                    <div className="bg-gray-50 rounded-xl p-5 border border-gray-200 border-dashed">
+                                        <p className="text-gray-500 italic mb-2">No specific requirements listed.</p>
+                                        <p className="text-sm text-gray-400">Standard submission guidelines apply:</p>
+                                        <ul className="list-disc list-inside text-sm text-gray-500 mt-2 space-y-1">
+                                            <li>High-resolution video content</li>
+                                            <li>Clear audio quality</li>
+                                            <li>Authentic product engagement</li>
+                                            <li>Adherence to platform community guidelines</li>
+                                        </ul>
+                                    </div>
+                                </div>
                             )}
                         </div>
                     </div>
