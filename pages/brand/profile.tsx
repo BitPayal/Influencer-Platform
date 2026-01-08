@@ -6,6 +6,14 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
+interface BrandProfile {
+  company_name: string | null;
+  website: string | null;
+  industry: string | null;
+  contact_person: string | null;
+  phone_number: string | null;
+}
+
 const BrandProfile = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -32,12 +40,13 @@ const BrandProfile = () => {
         if (error) throw error;
 
         if (data) {
+          const brandData = data as unknown as BrandProfile;
           setFormData({
-            company_name: data.company_name || '',
-            website: data.website || '',
-            industry: data.industry || '',
-            contact_person: data.contact_person || '',
-            phone_number: data.phone_number || '',
+            company_name: brandData.company_name || '',
+            website: brandData.website || '',
+            industry: brandData.industry || '',
+            contact_person: brandData.contact_person || '',
+            phone_number: brandData.phone_number || '',
           });
         }
       } catch (error) {
