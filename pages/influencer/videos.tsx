@@ -137,6 +137,13 @@ const InfluencerVideos: React.FC = () => {
     if (!formData.videoUrl.trim()) {
       errors.videoUrl = 'Video URL is required';
       isValid = false;
+    } else {
+      try {
+        new URL(formData.videoUrl);
+      } catch (_) {
+        errors.videoUrl = 'Please enter a valid URL (including http:// or https://)';
+        isValid = false;
+      }
     }
 
     // Only validate campaign if the user has a rate (meaning they see the dropdown)
