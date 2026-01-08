@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { Database } from '@/types/supabase';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { User, Mail, Instagram, Youtube, Phone, FileText, Edit2, Save, X } from 'lucide-react';
+import { Toast } from '@/components/ui/Toast';
 
 // Create a typed client for this file
 const typedSupabase = supabase as unknown as SupabaseClient<Database>;
@@ -96,6 +97,13 @@ const InfluencerProfile = () => {
 
   return (
     <Layout>
+      {message && (
+        <Toast 
+          message={message.text} 
+          type={message.type} 
+          onClose={() => setMessage(null)} 
+        />
+      )}
       <div className="max-w-3xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <div>
@@ -187,12 +195,6 @@ const InfluencerProfile = () => {
                    </div>
                 </div>
               </div>
-
-              {message && (
-                <div className={`p-4 rounded-md ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                  {message.text}
-                </div>
-              )}
 
               <div className="flex justify-end gap-3">
                 <Button type="button" variant="secondary" onClick={() => setIsEditing(false)} className="flex items-center gap-2">

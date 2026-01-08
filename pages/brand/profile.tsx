@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { Database } from '@/types/supabase';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Building2, Globe, Briefcase, User, Phone, Edit2, Save, X, Mail } from 'lucide-react';
+import { Toast } from '@/components/ui/Toast';
 
 // Create a typed client. Since the global instance is untyped, we cast it here for this file.
 // Alternatively, we could update lib/supabase.ts, but that might affect other files.
@@ -106,6 +107,13 @@ const BrandProfile = () => {
 
   return (
     <Layout>
+      {message && (
+        <Toast 
+          message={message.text} 
+          type={message.type} 
+          onClose={() => setMessage(null)} 
+        />
+      )}
       <div className="max-w-3xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <div>
@@ -198,11 +206,7 @@ const BrandProfile = () => {
                 </div>
               </div>
 
-              {message && (
-                <div className={`p-4 rounded-md ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                  {message.text}
-                </div>
-              )}
+
 
               <div className="flex justify-end gap-3">
                  <Button type="button" variant="secondary" onClick={() => setIsEditing(false)} className="flex items-center gap-2">
