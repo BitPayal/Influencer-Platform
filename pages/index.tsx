@@ -90,12 +90,12 @@ const Home: NextPage = () => {
       </Head>
 
       <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md shadow-sm z-50 border-b border-gray-100 transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap sm:flex-nowrap justify-between items-center min-h-[4rem] sm:min-h-[5rem] py-2 sm:py-0 gap-y-2">
             {/* Left: Brand Identity */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
               <Link href="/">
-                <span className="text-2xl font-black text-gray-900 cursor-pointer tracking-tight flex items-center gap-1">
+                <span className="text-lg sm:text-2xl font-black text-gray-900 cursor-pointer tracking-tight flex items-center gap-1">
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-red-600">Cehpoint</span> 
                   <span>Influence</span>
                 </span>
@@ -106,7 +106,7 @@ const Home: NextPage = () => {
             </div>
 
             {/* Right: Navigation & Actions - Unified for consistent spacing */}
-            <div className="flex items-center gap-6 lg:gap-8">
+            <div className="flex items-center gap-2 sm:gap-6 lg:gap-8 flex-shrink-0 ml-auto">
               {/* Desktop Nav Links */}
               <div className="hidden lg:flex items-center gap-8">
                 <a 
@@ -145,12 +145,12 @@ const Home: NextPage = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-4 lg:gap-8">
+              <div className="flex items-center gap-2 sm:gap-4 lg:gap-8">
                 {/* Login Dropdown */}
                 <div className="relative group">
-                  <button className="flex items-center gap-2 text-gray-700 font-semibold hover:text-orange-600 transition-colors py-2 px-3 rounded-lg hover:bg-orange-50/50">
+                  <button className="flex items-center gap-1 sm:gap-2 text-gray-700 font-semibold hover:text-orange-600 transition-colors py-1.5 px-2 sm:py-2 sm:px-3 rounded-lg hover:bg-orange-50/50 text-sm sm:text-base">
                     Login 
-                    <svg className="w-4 h-4 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
@@ -188,7 +188,7 @@ const Home: NextPage = () => {
 
                 {/* Get Started CTA */}
                 <Link href="/register">
-                  <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold px-6 py-2.5 rounded-full shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all transform hover:-translate-y-0.5">
+                  <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold px-4 py-2 sm:px-6 sm:py-2.5 text-xs sm:text-sm rounded-full shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all transform hover:-translate-y-0.5">
                     Get Started
                   </Button>
                 </Link>
