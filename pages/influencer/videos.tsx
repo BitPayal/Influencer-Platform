@@ -194,57 +194,64 @@ const InfluencerVideos: React.FC = () => {
         <title>My Videos - Cehpoint Marketing Partners</title>
       </Head>
 
-      <div>
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">My Videos</h1>
-            <p className="mt-1 text-gray-600">Submit and track your promotional videos</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mb-8">
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">My Videos</h1>
+            <p className="mt-2 text-gray-600 text-lg">Submit and track your promotional videos</p>
             {filterStatus && (
-              <div className="mt-2 flex items-center">
-                <span className="text-sm text-gray-500 mr-2">Filtered by:</span>
-                <Badge variant={filterStatus === 'approved' ? 'success' : filterStatus === 'pending' ? 'warning' : 'default'} className="mr-2">
+              <div className="mt-4 flex flex-wrap items-center gap-2 bg-gray-50 inline-flex px-3 py-1.5 rounded-full border border-gray-100">
+                <span className="text-sm font-medium text-gray-500">Filtered by:</span>
+                <Badge variant={filterStatus === 'approved' ? 'success' : filterStatus === 'pending' ? 'warning' : 'default'}>
                   {filterStatus.charAt(0).toUpperCase() + filterStatus.slice(1)}
                 </Badge>
                 <button
                   onClick={clearFilter}
-                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                  className="ml-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline focus:outline-none"
                 >
                   Clear filter
                 </button>
               </div>
             )}
           </div>
-          <Button
-            variant="primary"
-            onClick={() => setModalOpen(true)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Submit New Video
-          </Button>
+          <div className="w-full md:w-auto">
+            <Button
+              variant="primary"
+              onClick={() => setModalOpen(true)}
+              className="w-full md:w-auto shadow-sm"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Submit New Video
+            </Button>
+          </div>
         </div>
 
-        <Card>
+        <Card className="overflow-hidden border border-gray-100 shadow-sm">
           {videos.length === 0 ? (
-            <div className="text-center py-12">
-              <Video className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <div className="text-center py-16 px-4 bg-gray-50/50">
+              <div className="bg-white p-4 rounded-full shadow-sm w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+                <Video className="h-10 w-10 text-primary-500" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
                 No videos yet
               </h3>
-              <p className="text-gray-600 mb-6">
-                Get started by submitting your first promotional video
+              <p className="text-gray-500 mb-8 max-w-md mx-auto">
+                Start your journey by submitting your first promotional video. Selected videos will be eligible for payment.
               </p>
-              <Button variant="primary" onClick={() => setModalOpen(true)}>
-                Submit Video
+              <Button variant="primary" size="lg" onClick={() => setModalOpen(true)} className="shadow-md">
+                Submit Your First Video
               </Button>
             </div>
           ) : filteredVideos.length === 0 ? (
-            <div className="text-center py-12">
-              <Video className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <div className="text-center py-12 bg-gray-50/30">
+              <div className="bg-white p-3 rounded-full shadow-sm w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                 <Video className="h-8 w-8 text-gray-400" />
+              </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 No videos found
               </h3>
-              <p className="text-gray-600 mb-6">
-                No videos match the current filter ({filterStatus}).
+              <p className="text-gray-500 mb-6">
+                No videos match the current filter <span className="font-medium">"{filterStatus}"</span>.
               </p>
               <Button variant="secondary" onClick={clearFilter}>
                 Clear Filter
