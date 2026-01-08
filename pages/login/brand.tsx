@@ -27,6 +27,7 @@ const BrandLogin: React.FC = () => {
       
       if (!result.success) {
         setError(result.error || 'Login failed. Please check your credentials.');
+        setFormLoading(false); // Explicitly reset loading state
         return;
       }
       
@@ -108,6 +109,12 @@ const BrandLogin: React.FC = () => {
             >
               Login as Brand
             </Button>
+
+            <div className="flex items-center justify-end">
+              <Link href="/forgot-password" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                Forgot your password?
+              </Link>
+            </div>
           </form>
 
           <div className="mt-8 text-center">

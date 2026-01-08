@@ -9,6 +9,7 @@ import { Select } from '@/components/ui/Select';
 import { FileUpload } from '@/components/FileUpload';
 import { indianStates } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 
 const InfluencerRegister: React.FC = () => {
   const router = useRouter();
@@ -16,6 +17,7 @@ const InfluencerRegister: React.FC = () => {
   const [idProofUrl, setIdProofUrl] = useState('');
 
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [idProofFile, setIdProofFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState({
@@ -87,6 +89,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   console.log('Starting handleSubmit');
   setError('');
+  setSuccess('');
   setLoading(true);
 
   try {
@@ -119,101 +122,100 @@ const handleSubmit = async (e: React.FormEvent) => {
 
 let sessionUser = signUpData.user;
 
-  if (signUpError) {
-    if (signUpError.message.toLowerCase().includes("already registered") || signUpError.message.toLowerCase().includes("user already registered")) {
-      console.warn("User already registered. Redirecting to login...");
-      alert("This email is already registered. Please sign in.");
-      router.push('/login');
-      return; 
-    } else {
-      throw signUpError;
+    if (signUpError) {
+      if (signUpError.message.toLowerCase().includes("already registered") || signUpError.message.toLowerCase().includes("user already registered")) {
+        console.warn("User already registered. Showing error...");
+        setError("This email is already registered. Please sign in.");
+        setLoading(false); // Ensure loading state is reset
+        return; 
+      } else {
+        throw signUpError;
+      }
     }
-  }
 
-  // If we reach here without sessionUser and no error, something odd happened, but we shouldn't attempt auto-login if it failed before.
+    // If we reach here without sessionUser and no error, something odd happened, but we shouldn't attempt auto-login if it failed before.
+    if (!sessionUser) {
+        throw new Error("Registration failed. Please try again or use a different email.");
+    }
+
   if (!sessionUser) {
-      throw new Error("Registration failed. Please try again or use a different email.");
+      throw new Error("Authentication failed. Unable to retrieve user session.");
   }
 
-if (!sessionUser) {
-    throw new Error("Authentication failed. Unable to retrieve user session.");
-}
-
-// 3️⃣ Now we have authenticated user
-const userId = sessionUser.id;
+  // 3️⃣ Now we have authenticated user
+  const userId = sessionUser.id;
 
 
-console.log('Authenticated User ID:', userId);
+  console.log('Authenticated User ID:', userId);
 
 
-  // SKIP SELECT - directly upsert to avoid potential read hangs on new accounts
-  // const checkUserPromise = ... 
+    // SKIP SELECT - directly upsert to avoid potential read hangs on new accounts
+    // const checkUserPromise = ... 
+    
+    console.log('Upserting into users table...');
+    const upsertUserPromise = supabase.from('users').upsert({
+      id: userId,
+      email: formData.email,
+      role: 'influencer',
+    } as any, { onConflict: 'id', ignoreDuplicates: true });
   
-  console.log('Upserting into users table...');
-  const upsertUserPromise = supabase.from('users').upsert({
-    id: userId,
-    email: formData.email,
-    role: 'influencer',
-  } as any, { onConflict: 'id', ignoreDuplicates: true });
-
-  const { error: userError } = await Promise.race([
-      upsertUserPromise,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Upsert user timed out')), 10000))
+    const { error: userError } = await Promise.race([
+        upsertUserPromise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Upsert user timed out')), 10000))
+    ]) as any;
+  
+    if (userError) {
+        console.error('Users upsert error:', userError);
+        throw userError;
+    }
+  
+  // Existing user check block removed as it is replaced by upsert above.
+  
+  // insert influencer
+  console.log('Inserting into influencers table...');
+  const insertInfluencerPromise = supabase
+    .from('influencers')
+    .insert({
+      user_id: userId,
+      full_name: formData.fullName,
+      phone_number: formData.phoneNumber,
+      email: formData.email,
+      district: formData.district,
+      state: formData.state,
+      social_media_handles: {
+        instagram: formData.instagram,
+        youtube: formData.youtube,
+        facebook: formData.facebook,
+      },
+      follower_count: parseInt(formData.followerCount) || 0,
+      id_proof_type: formData.idProofType,
+      id_proof_url: uploadedIdProofUrl,
+      upi_id: formData.upiId,
+      approval_status: 'approved',
+      approved_at: new Date().toISOString(),
+    } as any);
+  
+  const { error: influencerError } = await Promise.race([
+      insertInfluencerPromise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Insert influencer timed out')), 10000))
   ]) as any;
-
-  if (userError) {
-      console.error('Users upsert error:', userError);
-      throw userError;
-  }
-
-// Existing user check block removed as it is replaced by upsert above.
-
-// insert influencer
-console.log('Inserting into influencers table...');
-const insertInfluencerPromise = supabase
-  .from('influencers')
-  .insert({
-    user_id: userId,
-    full_name: formData.fullName,
-    phone_number: formData.phoneNumber,
-    email: formData.email,
-    district: formData.district,
-    state: formData.state,
-    social_media_handles: {
-      instagram: formData.instagram,
-      youtube: formData.youtube,
-      facebook: formData.facebook,
-    },
-    follower_count: parseInt(formData.followerCount) || 0,
-    id_proof_type: formData.idProofType,
-    id_proof_url: uploadedIdProofUrl,
-    upi_id: formData.upiId,
-    approval_status: 'approved',
-    approved_at: new Date().toISOString(),
-  } as any);
-
-const { error: influencerError } = await Promise.race([
-    insertInfluencerPromise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error('Insert influencer timed out')), 10000))
-]) as any;
-
-console.log('Influencers insert error:', influencerError);
-
-if (influencerError) throw influencerError;
-
-
-    alert(
-      'Registration successful! Welcome to Cehpoint.'
-    );
-    router.push('/login');
-  } catch (err: any) {
-    console.error('Registration failed:', err);
-    alert(`Registration failed: ${err.message}`); // Alert specific error
-    setError(err.message || 'Failed to register');
-  } finally {
-    console.log('handleSubmit finally - turning off loading');
-    setLoading(false);
-  }
+  
+  console.log('Influencers insert error:', influencerError);
+  
+  if (influencerError) throw influencerError;
+  
+      setSuccess('Registration successful! Welcome to Cehpoint. Redirecting to login...');
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
+    } catch (err: any) {
+      console.error('Registration failed:', err);
+      // alert(`Registration failed: ${err.message}`); // REMOVED ALERT
+      setError(err.message || 'Failed to register');
+    } finally {
+      console.log('handleSubmit finally - turning off loading');
+      setLoading(false);
+    }
 };
 
 
@@ -236,11 +238,50 @@ if (influencerError) throw influencerError;
           </p>
         </div>
 
-        <div className="bg-white shadow-lg rounded-lg p-8">
+        <div className="bg-white shadow-lg rounded-lg p-4 sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {success && (
+              <div className="rounded-md bg-green-50 p-4 border border-green-200 shadow-sm animate-fade-in-down mb-6">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <CheckCircle className="h-5 w-5 text-green-400" aria-hidden="true" />
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-green-800">
+                      Registration Successful
+                    </h3>
+                    <div className="mt-2 text-sm text-green-700">
+                      <p>{success}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                {error}
+              <div className="rounded-md bg-red-50 p-4 border border-red-200 shadow-sm animate-fade-in-down mb-6">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <AlertCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">
+                      Registration Error
+                    </h3>
+                    <div className="mt-2 text-sm text-red-700">
+                      <p>{error}</p>
+                    </div>
+                    {error.includes("already registered") && (
+                         <div className="mt-4">
+                          <div className="-mx-2 -my-1.5 flex">
+                            <Link href="/login" className="bg-red-50 px-2 py-1.5 rounded-md text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600">
+                              Sign in now
+                            </Link>
+                          </div>
+                        </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -371,10 +412,19 @@ if (influencerError) throw influencerError;
     onChange={(e) => {
       const file = e.target.files?.[0];
       if (file) {
+        // Validate file type
+        if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+          setError('Only images (JPG, PNG) and PDF files are allowed. Videos are not permitted.');
+          // Clear the input value so the invalid file isn't kept
+          e.target.value = '';
+          return;
+        }
+
         if (file.size > 5 * 1024 * 1024) {
           setError('File size must be less than 5MB');
           return;
         }
+        setError(''); // Clear any previous errors
         setIdProofFile(file);
       }
     }}
@@ -428,5 +478,6 @@ if (influencerError) throw influencerError;
     </div>
   );
 };
+
 
 export default InfluencerRegister;

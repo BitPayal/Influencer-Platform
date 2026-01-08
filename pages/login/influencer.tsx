@@ -27,6 +27,7 @@ const InfluencerLogin: React.FC = () => {
       
       if (!result.success) {
         setError(result.error || 'Login failed. Please check your credentials.');
+        setFormLoading(false); // Explicitly reset loading state
         return;
       }
       
@@ -109,6 +110,12 @@ const InfluencerLogin: React.FC = () => {
             >
               Login as Influencer
             </Button>
+            
+            <div className="flex items-center justify-end">
+              <Link href="/forgot-password" className="text-sm font-medium text-orange-600 hover:text-orange-500">
+                Forgot your password?
+              </Link>
+            </div>
           </form>
 
           <div className="mt-8 text-center">
