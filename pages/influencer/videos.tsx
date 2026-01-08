@@ -139,13 +139,17 @@ const InfluencerVideos: React.FC = () => {
       isValid = false;
     }
 
-    // Optional: Validate campaign selection if needed.
-    // Since it's technically optional but recommended, we can leave it or enforce it. 
-    // Given the previous code had "required" on the select, let's strictly enforce it ONLY if we want to.
-    // The previous code had `required` on the select input, so let's replicate that behavior manually if desired, 
-    // OR just leave it optional as per the dropdown text "Portfolio Video (No Payment)".
-    // Let's stick to the visible "Important for Payment" warning but allow the "No Payment" option.
-    // So NO error for empty campaign.
+    // Only validate campaign if the user has a rate (meaning they see the dropdown)
+    // If they have no rate, we don't expect them to select a campaign.
+    if (influencer?.video_rate && influencer.video_rate > 0) {
+        // If we want to strictly require campaign for rated influencers:
+        if (!selectedCampaignId) {
+             // Let's make it optional but recommended, so no hard error, just the warning in UI.
+             // If we wanted to enforce it:
+             // errors.campaign = 'Please select a campaign';
+             // isValid = false;
+        }
+    }
 
     setFormErrors(errors);
     return isValid;
@@ -380,23 +384,37 @@ const InfluencerVideos: React.FC = () => {
               required
             />
             
-            <div>
-              <label className="label-text">Select Campaign (Important for Payment)</label>
-              <select
-                className="input-field"
-                value={selectedCampaignId || ''}
-                onChange={(e) => setSelectedCampaignId(e.target.value || null)}
-                 // removed required
-              >
-                 <option value="">-- General / Portfolio Video (No Payment) --</option>
-                 {activeCampaigns.map(c => (
-                     <option key={c.id} value={c.id}>Campaign: {c.title}</option>
-                 ))}
-              </select>
-              <p className="text-xs text-amber-600 mt-1">
-                  ⚠ Please select the campaign to ensure your submission is tracked for payment.
-              </p>
-            </div>
+            {/* Conditional Campaign Selector */}
+            {influencer && influencer.video_rate && influencer.video_rate > 0 ? (
+                <div>
+                  <label className="label-text">Select Campaign (Important for Payment)</label>
+                  <select
+                    className="input-field"
+                    value={selectedCampaignId || ''}
+                    onChange={(e) => setSelectedCampaignId(e.target.value || null)}
+                  >
+                     <option value="">-- General / Portfolio Video (No Payment) --</option>
+                     {activeCampaigns.map(c => (
+                         <option key={c.id} value={c.id}>Campaign: {c.title}</option>
+                     ))}
+                  </select>
+                  <p className="text-xs text-amber-600 mt-1">
+                      ⚠ Please select the campaign to ensure your submission is tracked for payment.
+                  </p>
+                </div>
+            ) : (
+                <div className="bg-blue-50 p-3 rounded-md border border-blue-100">
+                    <label className="label-text text-blue-800">Video Type</label>
+                    <div className="text-blue-700 font-medium text-sm mt-1">
+                        Portfolio / Introduction Video
+                    </div>
+                    <p className="text-xs text-blue-600 mt-1">
+                        This is your first submission for rate assignment. No campaign selection required.
+                    </p>
+                    <input type="hidden" name="campaign_id" value="" />
+                </div>
+            )}
+            
             <div>
               <label className="label-text">Description <span className="text-red-500 ml-1">*</span></label>
               <textarea
