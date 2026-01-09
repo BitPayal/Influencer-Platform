@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { supabase } from '@/lib/supabase';
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -30,25 +31,18 @@ const ForgotPassword: React.FC = () => {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/request-password-reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/update-password`,
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setMessage({ type: 'error', text: data.error || 'Something went wrong' });
-        // Explicitly return to stop execution, avoiding 'throw' which triggers Next.js overlay in dev
-        return;
+      if (error) {
+        throw error;
       }
 
       setMessage({
         type: 'success',
-        text: 'If this email is registered, we have sent a new password to it. Please check your inbox (and server logs for demo).',
+        text: 'Password reset link sent to your email. Please check your inbox.',
       });
-      console.log('Reset request successful:', data);
     } catch (error: any) {
       console.error('Password reset error:', error);
       setMessage({ type: 'error', text: error.message || 'Failed to request password reset' });
