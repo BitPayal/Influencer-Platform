@@ -285,9 +285,9 @@ let sessionUser = signUpData.user;
               </div>
             )}
 
-            <div className="border-b border-gray-200 pb-6">
-              <h3 className="text-lg font-semibold mb-4">Account Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="border-b border-gray-200 pb-8">
+              <h3 className="text-xl font-semibold mb-6">Account Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
                   id="email"
                   name="email"
@@ -310,9 +310,9 @@ let sessionUser = signUpData.user;
               </div>
             </div>
 
-            <div className="border-b border-gray-200 pb-6">
-              <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="border-b border-gray-200 pb-8">
+              <h3 className="text-xl font-semibold mb-6">Personal Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
                   id="fullName"
                   name="fullName"
@@ -350,9 +350,9 @@ let sessionUser = signUpData.user;
               </div>
             </div>
 
-            <div className="border-b border-gray-200 pb-6">
-              <h3 className="text-lg font-semibold mb-4">Social Media Handles</h3>
-              <div className="grid grid-cols-1 gap-4">
+            <div className="border-b border-gray-200 pb-8">
+              <h3 className="text-xl font-semibold mb-6">Social Media Handles</h3>
+              <div className="grid grid-cols-1 gap-6">
                 <Input
                   id="instagram"
                   name="instagram"
@@ -388,9 +388,9 @@ let sessionUser = signUpData.user;
               </div>
             </div>
 
-            <div className="border-b border-gray-200 pb-6">
-              <h3 className="text-lg font-semibold mb-4">Verification</h3>
-              <div className="grid grid-cols-1 gap-4">
+            <div className="border-b border-gray-200 pb-8">
+              <h3 className="text-xl font-semibold mb-6">Verification</h3>
+              <div className="grid grid-cols-1 gap-6">
                 <Select
                   id="idProofType"
                   name="idProofType"
@@ -403,56 +403,61 @@ let sessionUser = signUpData.user;
                   ]}
                   required
                 />
-               <div>
-  <label className="block text-sm font-medium text-gray-700">
-    ID Proof (PDF or Image)
-  </label>
-  <input
-    type="file"
-    onChange={(e) => {
-      const file = e.target.files?.[0];
-      if (file) {
-        // Validate file type
-        if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
-          setError('Only images (JPG, PNG) and PDF files are allowed. Videos are not permitted.');
-          // Clear the input value so the invalid file isn't kept
-          e.target.value = '';
-          return;
-        }
-
-        if (file.size > 5 * 1024 * 1024) {
-          setError('File size must be less than 5MB');
-          return;
-        }
-        setError(''); // Clear any previous errors
-        setIdProofFile(file);
-      }
-    }}
-    accept="image/*,.pdf"
-    className="block w-full text-sm text-gray-500
-      file:mr-4 file:py-2 file:px-4
-      file:rounded-md file:border-0
-      file:text-sm file:font-semibold
-      file:bg-primary-50 file:text-primary-700
-      hover:file:bg-primary-100"
-    required
-  />
-  <p className="text-xs text-gray-500">
-    Upload a clear photo or scan of your ID (JPG, PNG, or PDF, max 5MB)
-  </p>
-  {idProofUrl && (
-    <p className="text-sm text-green-600">
-      File uploaded successfully
-    </p>
-  )}
-</div>
-
-
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    ID Proof (PDF or Image) <span className="text-red-500">*</span>
+                  </label>
+                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:bg-gray-50 transition-colors cursor-pointer relative">
+                    <div className="space-y-1 text-center w-full">
+                         <div className="flex text-sm text-gray-600 justify-center">
+                            <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500">
+                              <span>Upload a file</span>
+                              <input 
+                                id="file-upload" 
+                                name="file-upload" 
+                                type="file" 
+                                className="sr-only" 
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+                                      setError('Only images (JPG, PNG) and PDF files are allowed.');
+                                      e.target.value = '';
+                                      return;
+                                    }
+                                    if (file.size > 5 * 1024 * 1024) {
+                                      setError('File size must be less than 5MB');
+                                      return;
+                                    }
+                                    setError('');
+                                    setIdProofFile(file);
+                                  }
+                                }}
+                                accept="image/*,.pdf"
+                                required
+                              />
+                            </label>
+                            <p className="pl-1">or drag and drop</p>
+                          </div>
+                      <p className="text-xs text-gray-500">PNG, JPG, PDF up to 5MB</p>
+                      {idProofFile && (
+                        <p className="text-sm font-medium text-green-600 mt-2 truncate max-w-[250px] mx-auto">
+                          Selected: {idProofFile.name}
+                        </p>
+                      )}
+                      {idProofUrl && (
+                        <p className="text-sm text-green-600 mt-1">
+                          File uploaded successfully
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="pb-6">
-              <h3 className="text-lg font-semibold mb-4">Payment Information</h3>
+            <div className="pb-8">
+              <h3 className="text-xl font-semibold mb-6">Payment Information</h3>
               <Input
                 id="upiId"
                 name="upiId"
@@ -464,11 +469,11 @@ let sessionUser = signUpData.user;
               />
             </div>
 
-            <div className="flex items-center justify-between pt-6">
-              <Link href="/login" className="text-primary-600 hover:text-primary-500">
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 pt-4">
+              <Link href="/login" className="text-sm font-medium text-primary-600 hover:text-primary-500 w-full sm:w-auto text-center">
                 Already have an account? Sign in
               </Link>
-              <Button type="submit" variant="primary" isLoading={loading}>
+              <Button type="submit" variant="primary" isLoading={loading} className="w-full sm:w-auto px-8 py-3">
                 Register
               </Button>
             </div>

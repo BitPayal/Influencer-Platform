@@ -387,8 +387,9 @@ const BrandRegister: React.FC = () => {
             </div>
 
             {/* Actions */}
-            <div className="pt-4 flex flex-col md:flex-row items-center justify-between gap-4">
-               <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">
+            {/* Actions */}
+            <div className="pt-6 flex flex-col-reverse sm:flex-row items-center justify-between gap-4 border-t border-gray-100">
+               <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors w-full sm:w-auto text-center">
                  Already have an account? <span className="underline">Sign in</span>
                </Link>
 
@@ -396,10 +397,10 @@ const BrandRegister: React.FC = () => {
                 type="submit" 
                 variant="primary" 
                 isLoading={loading} 
-                className="w-full md:w-auto bg-gray-900 hover:bg-black text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                className="w-full sm:w-auto bg-gray-900 hover:bg-black text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 {loading ? 'Creating Account...' : (
-                  <span className="flex items-center">
+                  <span className="flex items-center justify-center">
                     Register Brand <ArrowRight className="ml-2 w-4 h-4" />
                   </span>
                 )}
