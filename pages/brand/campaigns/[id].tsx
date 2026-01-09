@@ -12,6 +12,7 @@ type Tab = 'overview' | 'applications' | 'submissions';
 
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
+import { Toast } from '@/components/ui/Toast';
 
 const CampaignDetailsPage = () => {
     const { user, loading: authLoading } = useAuth();
@@ -29,6 +30,7 @@ const CampaignDetailsPage = () => {
     const [paymentRate, setPaymentRate] = useState<string>('0');
     const [txnId, setTxnId] = useState<string>('');
     const [isProcessing, setIsProcessing] = useState(false);
+    const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -101,7 +103,7 @@ const CampaignDetailsPage = () => {
             if (error) throw error;
             fetchCampaignDetails();
         } catch (error) {
-            alert('Error approving application');
+            setToast({ message: 'Error approving application', type: 'error' });
         }
     };
 
@@ -115,7 +117,7 @@ const CampaignDetailsPage = () => {
             if (error) throw error;
             fetchCampaignDetails(); 
         } catch (error) {
-            alert('Error rejecting application');
+            setToast({ message: 'Error rejecting application', type: 'error' });
         }
     };
 
@@ -170,12 +172,12 @@ const CampaignDetailsPage = () => {
 
                 if (paymentError) {
                      console.error("Error creating payment:", paymentError);
-                     alert("Video approved but failed to create payment record.");
+                     setToast({ message: "Video approved/paid but failed to record payment.", type: 'error' });
                 } else {
-                    alert(`Video Approved! Payment recorded as ${status.toUpperCase()}.`);
+                    setToast({ message: `Video Approved! Payment recorded as ${status.toUpperCase()}.`, type: 'success' });
                 }
             } else {
-                alert("Video Approved! No payment recorded (rate is 0).");
+                setToast({ message: "Video Approved! No payment recorded (rate is 0).", type: 'success' });
             }
 
             setSelectedVideo(null);
@@ -183,7 +185,7 @@ const CampaignDetailsPage = () => {
             
         } catch (error: any) {
             console.error(error);
-            alert(error.message || 'Error approving video');
+            setToast({ message: error.message || 'Error approving video', type: 'error' });
         } finally {
             setIsProcessing(false);
         }
@@ -197,6 +199,8 @@ const CampaignDetailsPage = () => {
         : null;
 
     return (
+        <>
+        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         <Layout>
              <Head>
                 <title>{campaign.title} - Management</title>
@@ -331,88 +335,126 @@ const CampaignDetailsPage = () => {
                 isOpen={!!selectedVideo}
                 onClose={() => setSelectedVideo(null)}
                 title="Approve & Pay (UPI)"
+                size="lg"
             >
-                <div className="space-y-6">
-                    {/* Header */}
-                    <div className="bg-blue-50 p-4 rounded-lg text-blue-800 text-sm">
-                         <div className="flex justify-between">
-                            <span className="font-semibold">Reviewing: {selectedVideo?.title}</span>
-                            <span>{new Date().toLocaleDateString()}</span>
+                <div className="space-y-8">
+                    {/* Header Card */}
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 rounded-2xl border border-blue-100 flex justify-between items-center">
+                         <div>
+                            <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide">Reviewing Submission</p>
+                            <h3 className="font-bold text-gray-900 text-lg mt-1">{selectedVideo?.title}</h3>
+                            <p className="text-gray-600 text-sm mt-1 flex items-center gap-2">
+                                <span className="bg-white px-2 py-0.5 rounded shadow-sm text-xs font-medium border border-gray-100">
+                                    Creator
+                                </span> 
+                                {selectedVideo?.influencer?.full_name}
+                            </p>
                          </div>
-                        <p className="mt-1">Creator: {selectedVideo?.influencer?.full_name}</p>
+                         <div className="text-right hidden sm:block">
+                            <p className="text-xs text-gray-500">{new Date().toLocaleDateString()}</p>
+                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Left: Rate Setting */}
-                        <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-1">
-                                1. Set Payment Amount (₹)
-                            </label>
-                            <Input 
-                                type="number" 
-                                value={paymentRate} 
-                                onChange={(e) => setPaymentRate(e.target.value)}
-                                min="0"
-                                className="font-bold text-lg"
-                            />
-                            <p className="text-xs text-gray-500 mt-2">
-                                Changing this updates the influencer's global rate for future videos.
-                            </p>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    1. Set Payment Amount
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-xl">₹</span>
+                                    <Input 
+                                        type="number" 
+                                        value={paymentRate} 
+                                        onChange={(e) => setPaymentRate(e.target.value)}
+                                        min="0"
+                                        className="pl-10 text-2xl font-bold h-14 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+                                    />
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2 flex items-start gap-1">
+                                    <span className="text-blue-500 text-lg leading-3">•</span>
+                                    Updates influencer's global rate for future videos.
+                                </p>
+                            </div>
+
+                             {/* Transaction Input moved here for mobile flow */}
+                             <div className="pt-4 border-t border-gray-100">
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    2. Transaction ID (Optional)
+                                </label>
+                                <Input 
+                                    placeholder="Enter UPI Ref ID (e.g. 3214...)"
+                                    value={txnId}
+                                    onChange={(e) => setTxnId(e.target.value)}
+                                    className="font-mono text-sm"
+                                />
+                                 <p className="text-xs text-gray-500 mt-2">
+                                    Leave blank to mark as <strong>Pending Payment</strong>.
+                                </p>
+                            </div>
                         </div>
 
-                        {/* Right: QR Code */}
-                        <div className="flex flex-col items-center justify-center border-l border-gray-100 pl-6">
+                        {/* Right: QR Code Card */}
+                        <div className="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col items-center justify-center shadow-sm text-center space-y-4">
                              {qrUrl ? (
                                 <>
-                                    <div className="bg-white p-2 border border-gray-200 rounded-lg shadow-sm">
-                                        <img src={qrUrl} alt="UPI QR Code" className="w-32 h-32" />
+                                    <div className="relative group">
+                                        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl opacity-75 blur group-hover:opacity-100 transition duration-200"></div>
+                                        <div className="relative bg-white p-2 rounded-xl">
+                                            <img src={qrUrl} alt="UPI QR Code" className="w-40 h-40 mix-blend-multiply" />
+                                        </div>
                                     </div>
-                                    <span className="text-xs text-gray-400 mt-2 font-mono">
-                                        {selectedVideo?.influencer?.upi_id}
-                                    </span>
-                                    <span className="text-xs text-indigo-600 font-semibold mt-1">
-                                        Scan to Pay ₹{paymentRate}
-                                    </span>
+                                    <div>
+                                        <p className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                            {selectedVideo?.influencer?.upi_id}
+                                        </p>
+                                        <p className="text-sm font-bold text-indigo-600 mt-2 flex items-center justify-center gap-1">
+                                            Scan to Pay <span className="text-lg">₹{paymentRate}</span>
+                                        </p>
+                                    </div>
                                 </>
                              ) : (
-                                 <div className="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-xs text-center p-2">
-                                     {selectedVideo?.influencer?.upi_id ? 'Enter amount to generate QR' : 'Influencer has no UPI ID'}
+                                 <div className="w-full h-48 bg-gray-50 rounded-xl flex flex-col items-center justify-center border-2 border-dashed border-gray-200 text-gray-400 p-4">
+                                     <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                                        <span className="text-xl font-bold">₹</span>
+                                     </div>
+                                     <p className="text-sm font-medium">
+                                         {selectedVideo?.influencer?.upi_id ? 'Enter amount to generate QR' : 'No UPI ID Available'}
+                                     </p>
                                  </div>
                              )}
                         </div>
                     </div>
 
-                    {/* Transaction Input */}
-                    <div className="border-t border-gray-100 pt-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            2. Transaction ID (Optional)
-                        </label>
-                         <p className="text-xs text-gray-500 mb-2">
-                            Enter the UPI Reference ID after paying. If left blank, payment is marked as <strong>Pending</strong>.
-                        </p>
-                        <Input 
-                            placeholder="e.g. 3214XXXXXXXX"
-                            value={txnId}
-                            onChange={(e) => setTxnId(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="flex justify-end gap-3 mt-4">
-                        <Button variant="secondary" onClick={() => setSelectedVideo(null)}>
+                    {/* Actions */}
+                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100">
+                        <Button variant="secondary" onClick={() => setSelectedVideo(null)} className="w-full sm:w-auto">
                             Cancel
                         </Button>
                         <Button 
                             variant="primary" 
                             onClick={confirmApproval} 
                             isLoading={isProcessing}
-                            className={txnId ? "bg-green-600 hover:bg-green-700" : "bg-indigo-600 hover:bg-indigo-700"}
+                            className={`w-full sm:w-auto px-8 font-semibold shadow-md transition-all ${
+                                txnId 
+                                    ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 ring-green-500" 
+                                    : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 ring-blue-500"
+                            }`}
                         >
-                            {txnId ? "Confirm Paid & Approve" : "Approve (Pay Later)"}
+                            {txnId ? (
+                                <span className="flex items-center gap-2">
+                                    <Check className="w-4 h-4" /> Confirm Paid & Approve
+                                </span>
+                            ) : (
+                                "Approve (Pay Later)"
+                            )}
                         </Button>
                     </div>
                 </div>
             </Modal>
         </Layout>
+        </>
     );
 };
 
