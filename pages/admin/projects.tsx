@@ -206,7 +206,12 @@ const AdminProjectsPage = () => {
                     </div>
                     
                     <div className="mt-6 pt-4 border-t border-gray-100">
-                        <Button variant="ghost" size="sm" className="w-full justify-between group-hover:bg-primary-50 group-hover:text-primary-700">
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="w-full justify-between group-hover:bg-primary-50 group-hover:text-primary-700"
+                            onClick={() => router.push(`/admin/projects/${project.id}`)}
+                        >
                             View Campaign Details
                             <span>→</span>
                         </Button>
