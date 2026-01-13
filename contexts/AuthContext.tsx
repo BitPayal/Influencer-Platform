@@ -9,7 +9,8 @@ interface AuthContextType {
   loading: boolean;
   login: (
     email: string,
-    password: string
+    password: string,
+    expectedRole?: UserRole
   ) => Promise<{ success: boolean; role?: UserRole; error?: string }>;
   signUp: (
     email: string,
@@ -133,7 +134,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const login = async (
     email: string,
-    password: string
+    password: string,
+    expectedRole?: UserRole // Optional role to enforce during login
   ): Promise<{ success: boolean; role?: UserRole; error?: string }> => {
     try {
       // 1. Authenticate
@@ -175,7 +177,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             {
               id: session.user.id,
               email: session.user.email,
-              role: "influencer", // Default role, or we could leave it null if schema allows
+              role: expectedRole || "influencer", // Default to expected or influencer
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             },
@@ -196,17 +198,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       // 3. Verify Role - Strict Role Check
-      if ((userProfile as any).role !== 'admin' && (userProfile as any).role !== 'influencer') {
-         console.warn(`Unauthorized role: ${(userProfile as any).role}`);
+      // Valid roles now include 'marketing'
+      const validRoles: UserRole[] = ['admin', 'influencer', 'marketing'];
+      const userRole = (userProfile as any).role;
+      
+      if (!validRoles.includes(userRole)) {
+         console.warn(`Unauthorized role: ${userRole}`);
          await supabase.auth.signOut();
          return {
            success: false,
            error: "Access Denied: Invalid user role."
          };
       }
+      
+      // If a specific role was expected (e.g. login from Brand portal), enforce it
+      if (expectedRole && userRole !== expectedRole) {
+           console.warn(`Role mismatch. Expected ${expectedRole}, got ${userRole}`);
+           await supabase.auth.signOut();
+           return {
+               success: false,
+               error: `Access Denied: This account is registered as a ${userRole}, not a ${expectedRole}.`
+           };
+      }
 
       console.log("Login successful:", session.user.id);
-      return { success: true, role: (userProfile as any).role };
+      return { success: true, role: userRole };
     } catch (error: any) {
       console.error("Login failed:", error);
       // Ensure we clear any partial session if we failed validity checks
