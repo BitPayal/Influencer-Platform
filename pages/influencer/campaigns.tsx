@@ -69,7 +69,7 @@ const BrowseCampaigns: React.FC = () => {
             }));
             
             // Normalize Campaigns (keep existing structure)
-            const normalizedCampaigns = (campaignsData || []).map(c => ({
+            const normalizedCampaigns = ((campaignsData as any[]) || []).map(c => ({
                 ...c,
                 type: 'campaign'
             }));
