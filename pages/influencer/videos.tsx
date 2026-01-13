@@ -36,8 +36,11 @@ const InfluencerVideos: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
-  const [activeCampaigns, setActiveCampaigns] = useState<any[]>([]); // New state
+  const [activeCampaigns, setActiveCampaigns] = useState<any[]>([]);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+  const [selectedTaskAssignmentId, setSelectedTaskAssignmentId] = useState<string | null>(null);
+  const [selectedTaskDetails, setSelectedTaskDetails] = useState<any>(null);
 
   useEffect(() => {
     if (user) {
@@ -45,11 +48,16 @@ const InfluencerVideos: React.FC = () => {
     }
   }, [user]);
 
-  // Handle URL query parameters
   useEffect(() => {
     if (router.query.campaign) {
       setSelectedCampaignId(router.query.campaign as string);
       setModalOpen(true);
+    }
+    
+    if (router.query.task) {
+        setSelectedTaskAssignmentId(router.query.task as string);
+        fetchTaskDetails(router.query.task as string);
+        setModalOpen(true);
     }
 
     if (router.query.status) {
@@ -58,6 +66,29 @@ const InfluencerVideos: React.FC = () => {
       setFilterStatus(null);
     }
   }, [router.query]);
+
+  const fetchTaskDetails = async (assignmentId: string) => {
+      try {
+          const { data, error } = await supabase
+            .from('task_assignments')
+            .select('*, tasks(*)')
+            .eq('id', assignmentId)
+            .single();
+            
+          if (error) throw error;
+          setSelectedTaskDetails(data);
+          const taskData = data as any;
+          if (taskData && taskData.tasks) {
+              setFormData(prev => ({ 
+                  ...prev, 
+                  title: `${taskData.tasks.title} - Submission`, 
+                  description: `Submission for task: ${taskData.tasks.title}` 
+              }));
+          }
+      } catch (err) {
+          console.error("Error fetching task details:", err);
+      }
+  }
 
   const fetchData = async () => {
     try {
@@ -83,14 +114,6 @@ const InfluencerVideos: React.FC = () => {
         })) || [];
         
         setActiveCampaigns(campaigns);
-
-        // Auto-select if a query param exists OR if there's only one active campaign and we are not filtering
-        if (!selectedCampaignId && campaigns.length === 1 && !router.query.campaign) {
-             // Optional: Auto-select single campaign for convenience?
-             // Let's not force it unless they click a "Submit for Campaign" button, generic submissions might exist.
-             // But for safer UX to prevent "I forgot to select":
-             // setSelectedCampaignId(campaigns[0].id);
-        }
       }
 
       if (influencerData) {
@@ -114,7 +137,6 @@ const InfluencerVideos: React.FC = () => {
     router.replace('/influencer/videos', undefined, { shallow: true });
   };
 
-  // ... handleSubmit ...
   const validateForm = () => {
     const errors = {
       title: '',
@@ -146,15 +168,10 @@ const InfluencerVideos: React.FC = () => {
       }
     }
 
-    // Only validate campaign if the user has a rate (meaning they see the dropdown)
-    // If they have no rate, we don't expect them to select a campaign.
-    if (influencer?.video_rate && influencer.video_rate > 0) {
-        // If we want to strictly require campaign for rated influencers:
+    // Only validate campaign if the user has a rate AND NO TASK selected
+    if (!selectedTaskAssignmentId && influencer?.video_rate && influencer.video_rate > 0) {
         if (!selectedCampaignId) {
-             // Let's make it optional but recommended, so no hard error, just the warning in UI.
-             // If we wanted to enforce it:
-             // errors.campaign = 'Please select a campaign';
-             // isValid = false;
+             // Optional logic
         }
     }
 
@@ -170,7 +187,7 @@ const InfluencerVideos: React.FC = () => {
     }
 
     setSubmitting(true);
-    setFormErrors({ title: '', description: '', videoUrl: '', campaign: '' }); // Clear errors
+    setFormErrors({ title: '', description: '', videoUrl: '', campaign: '' });
 
     try {
       const payload: any = {
@@ -182,7 +199,11 @@ const InfluencerVideos: React.FC = () => {
         submitted_at: new Date().toISOString(),
       };
 
-      if (selectedCampaignId) {
+      if (selectedTaskAssignmentId) {
+          payload.task_assignment_id = selectedTaskAssignmentId;
+          // Also update assignment status to submitted
+          await (supabase.from('task_assignments') as any).update({ status: 'submitted', submitted_at: new Date().toISOString() }).eq('id', selectedTaskAssignmentId);
+      } else if (selectedCampaignId) {
         payload.campaign_id = selectedCampaignId;
       }
 
@@ -193,8 +214,10 @@ const InfluencerVideos: React.FC = () => {
       setMessage({ type: 'success', text: 'Video submitted successfully! It will be reviewed shortly.' });
       setModalOpen(false);
       setFormData({ title: '', description: '', videoUrl: '' });
-      setSelectedCampaignId(null); // Reset
-      // Clear query param without reload
+      setSelectedCampaignId(null);
+      setSelectedTaskAssignmentId(null);
+      setSelectedTaskDetails(null);
+      
       router.replace('/influencer/videos', undefined, { shallow: true });
       fetchData();
     } catch (error: any) {
@@ -203,7 +226,6 @@ const InfluencerVideos: React.FC = () => {
       setSubmitting(false);
     }
   };
-
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -391,35 +413,49 @@ const InfluencerVideos: React.FC = () => {
               required
             />
             
-            {/* Conditional Campaign Selector */}
-            {influencer && influencer.video_rate && influencer.video_rate > 0 ? (
-                <div>
-                  <label className="label-text">Select Campaign (Important for Payment)</label>
-                  <select
-                    className="input-field"
-                    value={selectedCampaignId || ''}
-                    onChange={(e) => setSelectedCampaignId(e.target.value || null)}
-                  >
-                     <option value="">-- General / Portfolio Video (No Payment) --</option>
-                     {activeCampaigns.map(c => (
-                         <option key={c.id} value={c.id}>Campaign: {c.title}</option>
-                     ))}
-                  </select>
-                  <p className="text-xs text-amber-600 mt-1">
-                      ⚠ Please select the campaign to ensure your submission is tracked for payment.
-                  </p>
-                </div>
+            {/* Conditional Logic: Task vs Campaign vs General */}
+            {selectedTaskDetails ? (
+                 <div className="bg-purple-50 p-4 rounded border border-purple-200 mb-4">
+                     <p className="text-sm font-bold text-purple-900">Submitting for Task</p>
+                     <p className="text-lg text-purple-800">{selectedTaskDetails.tasks?.title}</p>
+                     <p className="text-sm text-purple-600 mt-1">Reward: ₹{selectedTaskDetails.tasks?.reward}</p>
+                     {selectedTaskDetails.tasks?.guidelines && (
+                        <div className="mt-2 text-xs text-purple-700 bg-purple-100 p-2 rounded">
+                            <span className="font-bold">Guidelines:</span> {selectedTaskDetails.tasks.guidelines}
+                        </div>
+                     )}
+                 </div>
             ) : (
-                <div className="bg-blue-50 p-3 rounded-md border border-blue-100">
-                    <label className="label-text text-blue-800">Video Type</label>
-                    <div className="text-blue-700 font-medium text-sm mt-1">
-                        Portfolio / Introduction Video
-                    </div>
-                    <p className="text-xs text-blue-600 mt-1">
-                        This is your first submission for rate assignment. No campaign selection required.
-                    </p>
-                    <input type="hidden" name="campaign_id" value="" />
-                </div>
+                <>
+                    {influencer && influencer.video_rate && influencer.video_rate > 0 ? (
+                        <div>
+                        <label className="label-text">Select Campaign (Important for Payment)</label>
+                        <select
+                            className="input-field"
+                            value={selectedCampaignId || ''}
+                            onChange={(e) => setSelectedCampaignId(e.target.value || null)}
+                        >
+                            <option value="">-- General / Portfolio Video (No Payment) --</option>
+                            {activeCampaigns.map(c => (
+                                <option key={c.id} value={c.id}>Campaign: {c.title}</option>
+                            ))}
+                        </select>
+                        <p className="text-xs text-amber-600 mt-1">
+                            ⚠ Please select the campaign to ensure your submission is tracked for payment.
+                        </p>
+                        </div>
+                    ) : (
+                        <div className="bg-blue-50 p-3 rounded-md border border-blue-100">
+                            <label className="label-text text-blue-800">Video Type</label>
+                            <div className="text-blue-700 font-medium text-sm mt-1">
+                                Portfolio / Introduction Video
+                            </div>
+                            <p className="text-xs text-blue-600 mt-1">
+                                This is your first submission for rate assignment. No campaign selection required.
+                            </p>
+                        </div>
+                    )}
+                </>
             )}
             
             <div>

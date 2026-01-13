@@ -24,29 +24,38 @@ const InfluencerTasksPage = () => {
     fetchTasks();
   }, [user]);
 
+  // Add approval status state
+  const [approvalStatus, setApprovalStatus] = useState<string | null>(null);
+
   const fetchTasks = async () => {
     try {
-      // 1. Fetch influencer ID
+      // 1. Fetch influencer ID & Status
       const { data: influencer } = await supabase
         .from("influencers")
-        .select("id")
+        .select("id, approval_status")
         .eq("user_id", user?.id)
         .single();
 
       if (!influencer) return;
+      
+      setApprovalStatus((influencer as any).approval_status);
+
+      if ((influencer as any).approval_status !== 'approved') {
+          setLoading(false);
+          return;
+      }
+
+      const influencerId = (influencer as any).id;
 
       // 2. Fetch standard task assignments
       const { data: assignments } = await supabase
-        .from("influencer_tasks")
+        .from("task_assignments")
         .select(`
           *,
-          tasks(*),
-          video_submissions(*)
+          tasks(*)
         `)
-        .eq("influencer_id", (influencer as any).id)
+        .eq("influencer_id", influencerId)
         .order("created_at", { ascending: false });
-
-      const typedAssignments = (assignments || []) as any[];
 
       // 3. Fetch approved campaign applications
       const { data: campaigns } = await supabase
@@ -55,17 +64,15 @@ const InfluencerTasksPage = () => {
           *,
           campaigns (*)
         `)
-        .eq("influencer_id", (influencer as any).id)
+        .eq("influencer_id", influencerId)
         .eq("status", "approved")
         .order("updated_at", { ascending: false });
-
-      const typedCampaigns = (campaigns || []) as any[];
 
       // 4. Fetch ALL video submissions for this influencer
       const { data: submissions } = await supabase
         .from("video_submissions")
         .select("*")
-        .eq("influencer_id", (influencer as any).id);
+        .eq("influencer_id", influencerId);
         
       const typedSubmissions = (submissions || []) as any[];
 
@@ -74,27 +81,23 @@ const InfluencerTasksPage = () => {
         return typedSubmissions?.find(s => s.campaign_id === campaignId);
       };
 
-      // 5. Normalize and merge data
-      const normalizedAssignments = typedAssignments.map((a) => {
-        // Standard assignments already join video_submissions in 'a.video_submissions'
-        // But we can check our manually fetched submissions if needed.
-        // Usually, 'a.status' field on task_assignment is updated by backend?
-        // If not, we should derive it.
-        // Let's rely on 'a.status' for assignments for now as per legacy code.
-        return {
+      // 5. Normalize Assignments
+      const normalizedAssignments = (assignments || []).map((a: any) => ({
         id: a.id,
         type: 'assignment',
         title: a.tasks?.title || 'Untitled Task',
         description: a.tasks?.description,
-        status: a.status, // assigned, submitted, completed
+        topic: a.tasks?.topic,
+        guidelines: a.tasks?.guidelines,
+        status: a.status, 
         created_at: a.created_at,
         assigned_month: a.assigned_month,
         assigned_year: a.assigned_year,
         raw: a
-        };
-      });
+      }));
 
-      const normalizedCampaigns = typedCampaigns.map((c) => {
+      // 6. Normalize Campaigns
+      const normalizedCampaigns = (campaigns || []).map((c: any) => {
         const submission = getCampaignSubmission(c.campaign_id);
         let status = 'assigned';
         if (submission) {
@@ -106,15 +109,15 @@ const InfluencerTasksPage = () => {
         }
 
         return {
-        id: c.id,
-        type: 'campaign',
-        title: c.campaigns?.title || 'Campaign Task',
-        description: `Campaign: ${c.campaigns?.title}`,
-        status: status,
-        created_at: c.updated_at,
-        assigned_month: new Date(c.updated_at).toLocaleString("default", { month: "long" }),
-        assigned_year: new Date(c.updated_at).getFullYear(),
-        raw: c
+          id: c.id,
+          type: 'campaign',
+          title: c.campaigns?.title || 'Campaign Task',
+          description: `Campaign: ${c.campaigns?.title}`,
+          status: status,
+          created_at: c.updated_at,
+          assigned_month: new Date(c.updated_at).toLocaleString("default", { month: "long" }),
+          assigned_year: new Date(c.updated_at).getFullYear(),
+          raw: c
         };
       });
 
@@ -145,6 +148,24 @@ const InfluencerTasksPage = () => {
       <Layout>
         <div className="flex items-center justify-center h-64">
           <div className="text-lg text-gray-600">Loading tasks...</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (approvalStatus !== 'approved') {
+    return (
+      <Layout>
+        <div className="text-center py-12">
+          <Clock className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+            Account Not Approved
+          </h2>
+          <p className="text-gray-600">
+            {approvalStatus === 'rejected' 
+              ? "Your application was not approved. Please contact support." 
+              : "Your account is pending approval. You will be notified once reviewed."}
+          </p>
         </div>
       </Layout>
     );
@@ -230,7 +251,18 @@ const InfluencerTasksPage = () => {
                         </span>
                       </div>
                       <h3 className="text-xl font-bold text-gray-900">{task.title}</h3>
-                      <p className="text-gray-600 mt-1">{task.description}</p>
+                      {task.topic && (
+                         <Badge variant="info" className="mt-1 mb-2">{task.topic}</Badge>
+                      )}
+                      
+                      <p className="text-gray-600 mt-1 mb-2">{task.description}</p>
+                      
+                      {(task.guidelines && (task.status === 'assigned')) && (
+                          <div className="bg-blue-50 p-3 rounded text-sm text-blue-800 mb-3">
+                              <p className="font-bold mb-1">Guidelines:</p>
+                              <p className="whitespace-pre-wrap">{task.guidelines}</p>
+                          </div>
+                      )}
                     </div>
                     <Badge variant={getStatusColor(task.status)}>{task.status}</Badge>
                   </div>

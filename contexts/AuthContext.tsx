@@ -9,9 +9,8 @@ interface AuthContextType {
   loading: boolean;
   login: (
     email: string,
-    password: string,
-    requiredRole: string
-  ) => Promise<{ success: boolean; error?: string }>;
+    password: string
+  ) => Promise<{ success: boolean; role?: UserRole; error?: string }>;
   signUp: (
     email: string,
     password: string,
@@ -58,6 +57,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         await supabase.auth.getUser();
 
       if (authError || !authData?.user) {
+        // Handle specifically the "User from sub claim in JWT does not exist" error
+        // This happens when a user is deleted from Supabase but still has a valid local session token
+        if (authError?.message?.includes("User from sub claim in JWT does not exist") || 
+            authError?.message?.includes("invalid claim")) {
+          console.warn("Session invalid (user likely deleted). Signing out...");
+          await signOut();
+          return;
+        }
+
         console.error("Auth user not found:", authError);
         setUser(null);
         return;
@@ -125,9 +133,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const login = async (
     email: string,
-    password: string,
-    requiredRole: string
-  ): Promise<{ success: boolean; error?: string }> => {
+    password: string
+  ): Promise<{ success: boolean; role?: UserRole; error?: string }> => {
     try {
       // 1. Authenticate
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -188,21 +195,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return { success: false, error: "Unexpected error: User profile not found." };
       }
 
-      // 3. Verify Role
-      // 'marketing' role in frontend seems to map to 'Brand' in UI messages, but let's check strict equality
-      // The original code had: const roleName = requiredRole === 'marketing' ? 'Brand' : 'Influencer';
-      if ((userProfile as any).role !== requiredRole) {
-        console.warn(`Role mismatch. Required: ${requiredRole}, Actual: ${(userProfile as any).role}`);
-        await supabase.auth.signOut();
-        const roleName = requiredRole === "marketing" ? "Brand" : "Influencer";
-        return { 
-          success: false, 
-          error: `Access Denied: You are not authorized as a ${roleName}. Please check your login credentials.` 
-        };
+      // 3. Verify Role - Strict Role Check
+      if ((userProfile as any).role !== 'admin' && (userProfile as any).role !== 'influencer') {
+         console.warn(`Unauthorized role: ${(userProfile as any).role}`);
+         await supabase.auth.signOut();
+         return {
+           success: false,
+           error: "Access Denied: Invalid user role."
+         };
       }
 
       console.log("Login successful:", session.user.id);
-      return { success: true };
+      return { success: true, role: (userProfile as any).role };
     } catch (error: any) {
       console.error("Login failed:", error);
       // Ensure we clear any partial session if we failed validity checks

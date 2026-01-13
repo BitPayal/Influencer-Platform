@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import {
+  ClipboardList,
   LayoutDashboard,
   Users,
   Video,
@@ -12,6 +13,7 @@ import {
   LogOut,
   Menu,
   X,
+  MessageSquare,
 } from 'lucide-react';
 import { Button } from './ui/Button';
 import { UserMenu } from './UserMenu';
@@ -26,6 +28,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const [profileName, setProfileName] = React.useState<string | null>(null);
   const [isProfileLoading, setIsProfileLoading] = React.useState(false);
+  const [approvalStatus, setApprovalStatus] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const fetchProfileName = async () => {
@@ -41,44 +44,19 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       console.log("Layout: Fetching profile for user:", user.id, "Role:", user.role);
 
       try {
-        if (user.role === 'marketing') {
-           console.log("Layout: Attempting to fetch brand profile...");
-           const { data, error } = await supabase
-            .from('brands')
-            .select('company_name')
-            .eq('user_id', user.id)
-            .maybeSingle();
-
-            console.log("Layout: Brand fetch result:", { data, error });
-
-            if (error) {
-              console.error('Error fetching brand profile:', error);
-            } else if (data) {
-              console.log("Layout: Setting profile name to:", (data as any).company_name);
-              setProfileName((data as any).company_name);
-            } else {
-                console.warn("Layout: No brand profile found for user");
-            }
-        } else if (user.role === 'influencer') {
-           console.log("Layout: Attempting to fetch influencer profile...");
+        if (user.role === 'influencer') {
            const { data, error } = await supabase
             .from('influencers')
-            .select('full_name')
+            .select('full_name, approval_status')
             .eq('user_id', user.id)
             .maybeSingle();
-
-            console.log("Layout: Influencer fetch result:", { data, error });
 
             if (error) {
               console.error('Error fetching influencer profile:', error);
             } else if (data) {
-              console.log("Layout: Setting profile name to:", (data as any).full_name);
               setProfileName((data as any).full_name);
-            } else {
-                console.warn("Layout: No influencer profile found for user");
+              setApprovalStatus((data as any).approval_status);
             }
-        } else {
-            console.log("Layout: User role not recognized for profile fetch:", user.role);
         }
       } catch (error) {
         console.error("Error fetching profile name:", error);
@@ -108,25 +86,24 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Messages', href: '/messages', icon: FileText },
   ];
 
+  // Filter items for unapproved influencers
+  const filteredInfluencerNavItems = (user?.role === 'influencer' && approvalStatus !== 'approved')
+    ? influencerNavItems.filter(item => item.name === 'Dashboard')
+    : influencerNavItems;
+
   const adminNavItems = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+    { name: 'Applications', href: '/admin/applications', icon: ClipboardList }, // Added Link
     { name: 'Influencers', href: '/admin/influencers', icon: Users },
     { name: 'Projects', href: '/admin/projects', icon: FileText },
     { name: 'Tasks', href: '/admin/tasks', icon: FileText },
     { name: 'Assign Tasks', href: '/admin/task-assignments', icon: Users },
     { name: 'Videos', href: '/admin/videos', icon: Video },
     { name: 'Payments', href: '/admin/payments', icon: DollarSign },
+    { name: 'Messages', href: '/messages', icon: MessageSquare },
   ];
 
-  const marketingNavItems = [
-    { name: 'Dashboard', href: '/brand/dashboard', icon: LayoutDashboard },
-    { name: 'My Campaigns', href: '/brand/campaigns', icon: FileText },
-    { name: 'Create Campaign', href: '/brand/create-campaign', icon: FileText },
-    { name: 'Find Influencers', href: '/brand/search', icon: Users },
-    { name: 'Messages', href: '/messages', icon: FileText }, // basic icon for now
-  ];
-
-  const navItems = user?.role === 'admin' ? adminNavItems : user?.role === 'marketing' ? marketingNavItems : influencerNavItems;
+  const navItems = user?.role === 'admin' ? adminNavItems : filteredInfluencerNavItems;
 
   return (
     <div className="min-h-screen bg-gray-50">

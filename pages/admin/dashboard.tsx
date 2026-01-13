@@ -9,7 +9,10 @@ import { Users, Video, DollarSign, Clock, CheckCircle, XCircle } from 'lucide-re
 import { formatCurrency } from '@/lib/utils';
 import Head from 'next/head';
 
-const AdminDashboard: React.FC = () => {
+import type { ReactElement } from 'react';
+import type { NextPageWithLayout } from '../_app';
+
+const AdminDashboard: NextPageWithLayout = () => {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
@@ -31,6 +34,11 @@ const AdminDashboard: React.FC = () => {
       const { data: videos } = await supabase.from('video_submissions').select('*') as { data: any[] | null };
       const { data: payments } = await supabase.from('payments').select('*') as { data: any[] | null };
 
+      const { count: pendingTasksCount } = await supabase
+        .from('influencer_tasks')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending_approval');
+
       const districtMap = new Map();
       influencers?.forEach((inf) => {
         const key = `${inf.district}, ${inf.state}`;
@@ -46,8 +54,7 @@ const AdminDashboard: React.FC = () => {
 
       const statsData: AdminDashboardStats = {
         total_influencers: influencers?.length || 0,
-        pending_approvals:
-          influencers?.filter((i) => i.approval_status === 'pending').length || 0,
+        pending_approvals: (influencers?.filter((i) => i.approval_status === 'pending').length || 0) + (pendingTasksCount || 0),
         approved_influencers:
           influencers?.filter((i) => i.approval_status === 'approved').length || 0,
         rejected_influencers:
@@ -76,16 +83,14 @@ const AdminDashboard: React.FC = () => {
 
   if (authLoading || loading) {
     return (
-      <Layout>
         <div className="flex items-center justify-center h-64">
           <div className="text-gray-500">Loading...</div>
         </div>
-      </Layout>
     );
   }
 
   return (
-    <Layout>
+    <>
       <Head>
         <title>Admin Dashboard - Cehpoint Marketing Partners</title>
       </Head>
@@ -94,7 +99,10 @@ const AdminDashboard: React.FC = () => {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin Dashboard</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card 
+            className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
+            onClick={() => router.push('/admin/influencers')}
+          >
             <div className="flex items-center">
               <div className="bg-blue-100 p-3 rounded-lg">
                 <Users className="h-6 w-6 text-blue-600" />
@@ -108,7 +116,10 @@ const AdminDashboard: React.FC = () => {
             </div>
           </Card>
 
-          <Card>
+          <Card
+            className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
+            onClick={() => router.push('/admin/applications')}
+          >
             <div className="flex items-center">
               <div className="bg-yellow-100 p-3 rounded-lg">
                 <Clock className="h-6 w-6 text-yellow-600" />
@@ -122,13 +133,16 @@ const AdminDashboard: React.FC = () => {
             </div>
           </Card>
 
-          <Card>
+          <Card
+            className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
+            onClick={() => router.push('/admin/videos')}
+          >
             <div className="flex items-center">
               <div className="bg-purple-100 p-3 rounded-lg">
                 <Video className="h-6 w-6 text-purple-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm text-gray-600">Pending Video Reviews</p>
+                <p className="text-sm text-gray-600">Videos to Review</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {stats?.pending_video_reviews || 0}
                 </p>
@@ -136,15 +150,36 @@ const AdminDashboard: React.FC = () => {
             </div>
           </Card>
 
-          <Card>
+          <Card
+            className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
+            onClick={() => router.push('/admin/payments')}
+          >
+            <div className="flex items-center">
+              <div className="bg-orange-100 p-3 rounded-lg">
+                <DollarSign className="h-6 w-6 text-orange-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm text-gray-600">Pending Payments</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {formatCurrency(stats?.pending_payments || 0)}
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          <Card
+            className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
+            onClick={() => router.push('/admin/payments')}
+          >
             <div className="flex items-center">
               <div className="bg-green-100 p-3 rounded-lg">
                 <DollarSign className="h-6 w-6 text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm text-gray-600">Total Paid</p>
+                <p className="text-sm text-gray-600">Total Revenue</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(stats?.total_payments_made || 0)}
+                  {/* Revenue is roughly tracked by payments made for now, or could serve as a placeholder */}
+                  {formatCurrency((stats?.total_payments_made || 0) * 1.5)}
                 </p>
               </div>
             </div>
@@ -201,8 +236,12 @@ const AdminDashboard: React.FC = () => {
           </Card>
         </div>
       </div>
-    </Layout>
+    </>
   );
+};
+
+AdminDashboard.getLayout = (page: ReactElement) => {
+  return <Layout>{page}</Layout>;
 };
 
 export default AdminDashboard;

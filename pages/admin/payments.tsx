@@ -19,6 +19,7 @@ import { Payment, Influencer } from '@/types';
 import { DollarSign, Plus } from 'lucide-react';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import Head from 'next/head';
+import { Toast } from '@/components/ui/Toast';
 
 const AdminPayments: React.FC = () => {
   const { user } = useAuth();
@@ -44,7 +45,12 @@ const AdminPayments: React.FC = () => {
     notes: '',
   });
 
-
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  
+  // Mark as Paid State
+  const [markPaidModalOpen, setMarkPaidModalOpen] = useState(false);
+  const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
+  const [transactionIdInput, setTransactionIdInput] = useState('');
 
   const handleRevenueSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,12 +84,12 @@ const AdminPayments: React.FC = () => {
 
       if (payError) throw payError;
 
-      alert('Revenue share calculated and payment created!');
+      setToast({ message: 'Revenue share calculated and payment created!', type: 'success' });
       setRevenueModalOpen(false);
       fetchData();
     } catch (error: any) {
       console.error(error);
-      alert('Failed to process revenue share');
+      setToast({ message: 'Failed to process revenue share', type: 'error' });
     }
   };
 
@@ -135,7 +141,7 @@ const AdminPayments: React.FC = () => {
 
       if (error) throw error;
       
-      alert('Payment record created successfully!');
+      setToast({ message: 'Payment record created successfully!', type: 'success' });
       setModalOpen(false);
       setFormData({
         influencer_id: '',
@@ -146,13 +152,21 @@ const AdminPayments: React.FC = () => {
       });
       fetchData();
     } catch (error: any) {
-      alert(error.message || 'Failed to create payment');
+      setToast({ message: error.message || 'Failed to create payment', type: 'error' });
     }
   };
 
-  const markAsPaid = async (paymentId: string, transactionId: string) => {
-    if (!transactionId.trim()) {
-      alert('Please enter UPI transaction ID');
+  const openMarkPaidModal = (paymentId: string) => {
+      setSelectedPaymentId(paymentId);
+      setTransactionIdInput('');
+      setMarkPaidModalOpen(true);
+  };
+
+  const handleMarkAsPaidConfirm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPaymentId) return;
+    if (!transactionIdInput.trim()) {
+      setToast({ message: 'Please enter UPI transaction ID', type: 'error' });
       return;
     }
 
@@ -161,18 +175,19 @@ const AdminPayments: React.FC = () => {
         .from('payments') as any)
         .update({
           payment_status: 'paid',
-          upi_transaction_id: transactionId,
+          upi_transaction_id: transactionIdInput,
           paid_at: new Date().toISOString(),
           paid_by: user?.id,
         })
-        .eq('id', paymentId);
+        .eq('id', selectedPaymentId);
 
       if (error) throw error;
       
-      alert('Payment marked as paid!');
+      setToast({ message: 'Payment marked as paid!', type: 'success' });
+      setMarkPaidModalOpen(false);
       fetchData();
     } catch (error: any) {
-      alert(error.message || 'Failed to update payment');
+      setToast({ message: error.message || 'Failed to update payment', type: 'error' });
     }
   };
 
@@ -292,12 +307,7 @@ const AdminPayments: React.FC = () => {
                       <Button
                         variant="primary"
                         size="sm"
-                        onClick={() => {
-                          const txnId = prompt('Enter UPI Transaction ID:');
-                          if (txnId) {
-                            markAsPaid(payment.id, txnId);
-                          }
-                        }}
+                        onClick={() => openMarkPaidModal(payment.id)}
                       >
                         Mark Paid
                       </Button>
@@ -309,6 +319,7 @@ const AdminPayments: React.FC = () => {
           </Table>
         </Card>
 
+        {/* Create Payment Modal */}
         <Modal
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
@@ -465,6 +476,37 @@ const AdminPayments: React.FC = () => {
             </div>
            </form>
         </Modal>
+
+        <Modal
+            isOpen={markPaidModalOpen}
+            onClose={() => setMarkPaidModalOpen(false)}
+            title="Mark Payment as Paid"
+            size="sm"
+        >
+             <form onSubmit={handleMarkAsPaidConfirm} className="space-y-4">
+                 <p className="text-gray-600">
+                     Please enter the UPI Transaction ID to confirm this payment has been processed.
+                 </p>
+                 <Input 
+                     label="UPI Transaction ID"
+                     value={transactionIdInput}
+                     onChange={(e) => setTransactionIdInput(e.target.value)}
+                     required
+                 />
+                 <div className="flex justify-end space-x-3 pt-2">
+                    <Button type="button" variant="secondary" onClick={() => setMarkPaidModalOpen(false)}>Cancel</Button>
+                    <Button type="submit" variant="primary">Confirm Payment</Button>
+                 </div>
+             </form>
+        </Modal>
+
+        {toast && (
+            <Toast 
+                message={toast.message} 
+                type={toast.type} 
+                onClose={() => setToast(null)} 
+            />
+        )}
       </div>
     </Layout>
   );

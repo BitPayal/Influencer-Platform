@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 
-interface CardProps {
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
   title?: string;
@@ -15,9 +15,10 @@ export const Card: React.FC<CardProps> = ({
   title,
   description,
   actions,
+  ...props
 }) => {
   return (
-    <div className={cn('card', className)}>
+    <div className={cn('card', className)} {...props}>
       {(title || description || actions) && (
         <div className="flex items-start justify-between mb-6">
           <div>

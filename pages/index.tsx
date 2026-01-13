@@ -147,44 +147,11 @@ const Home: NextPage = () => {
               {/* Action Buttons */}
               <div className="flex items-center gap-2 sm:gap-4 lg:gap-8">
                 {/* Login Dropdown */}
-                <div className="relative group">
+                <Link href="/login">
                   <button className="flex items-center gap-1 sm:gap-2 text-gray-700 font-semibold hover:text-orange-600 transition-colors py-1.5 px-2 sm:py-2 sm:px-3 rounded-lg hover:bg-orange-50/50 text-sm sm:text-base">
                     Login 
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
                   </button>
-                  <div className="absolute right-0 top-full pt-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform group-hover:translate-y-0 translate-y-2">
-                    <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden ring-1 ring-black ring-opacity-5">
-                      <div className="p-2 space-y-1">
-                        <Link 
-                          href="/login/influencer"
-                          className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-700 rounded-lg transition-colors group/item"
-                        >
-                            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 group-hover/item:bg-orange-200 transition-colors">
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                            </div>
-                            <div>
-                              <span className="font-bold block text-sm">Influencer Login</span>
-                              <span className="text-xs text-gray-500">For Creators</span>
-                            </div>
-                        </Link>
-                        <Link 
-                          href="/login/brand"
-                          className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition-colors group/item"
-                        >
-                            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 group-hover/item:bg-indigo-200 transition-colors">
-                               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                            </div>
-                            <div>
-                               <span className="font-bold block text-sm">Brand Login</span>
-                               <span className="text-xs text-gray-500">For Companies</span>
-                            </div>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                </Link>
 
                 {/* Get Started CTA */}
                 <Link href="/register">
@@ -515,7 +482,7 @@ const Home: NextPage = () => {
                 Join 1000+ influencers building Digital India and earning serious income. No fees, no hidden charges.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Link href="/register/influencer">
+                <Link href="/register">
                   <Button
                     size="lg"
                     className="w-full sm:w-auto bg-white text-orange-600 hover:bg-gray-100 font-black text-lg px-10 py-4 shadow-xl hover:shadow-2xl transition-all"
@@ -523,7 +490,7 @@ const Home: NextPage = () => {
                     Join Free - Start Earning →
                   </Button>
                 </Link>
-                <Link href="/login/influencer">
+                <Link href="/login">
                   <Button
                     size="lg"
                     className="w-full sm:w-auto bg-gray-900 text-white hover:bg-gray-800 font-black text-lg px-10 py-4 shadow-xl hover:shadow-2xl transition-all border-2 border-gray-900"
@@ -554,8 +521,8 @@ const Home: NextPage = () => {
             <div>
               <h4 className="text-white font-bold mb-3">For Influencers</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link href="/register/influencer" className="hover:text-orange-400 transition-colors">Register Free</Link></li>
-                <li><Link href="/login/influencer" className="hover:text-orange-400 transition-colors">Influencer Login</Link></li>
+                <li><Link href="/register" className="hover:text-orange-400 transition-colors">Register Free</Link></li>
+                <li><Link href="/login" className="hover:text-orange-400 transition-colors">Login</Link></li>
                 <li><Link href="/contact" className="hover:text-orange-400 transition-colors">Contact Us</Link></li>
               </ul>
             </div>

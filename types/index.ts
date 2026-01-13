@@ -1,4 +1,4 @@
-export type UserRole = 'influencer' | 'admin' | 'marketing';
+export type UserRole = 'influencer' | 'admin';
 
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 

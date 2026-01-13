@@ -27,22 +27,61 @@ const BrowseCampaigns: React.FC = () => {
 
     const fetchCampaigns = async () => {
         try {
-            const { data, error } = await supabase
+            // Fetch Campaigns
+            const { data: campaignsData, error: campaignsError } = await supabase
                 .from('campaigns')
                 .select(`
                     *,
                     brands (
                         company_name,
-                        logo_url
+                        logo_url,
+                        location
                     )
                 `)
                 .eq('status', 'active')
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
-            setCampaigns(data || []);
+            if (campaignsError) throw campaignsError;
+
+            // Fetch Tasks (Admin created)
+            const { data: tasksData, error: tasksError } = await supabase
+                .from('tasks')
+                .select('*')
+                //.eq('is_default', true) // or just all? User said "Admin post a campaign" -> Task.
+                .order('created_at', { ascending: false });
+
+            if (tasksError) console.error('Error fetching tasks:', tasksError);
+
+            // Normalize Tasks to look like Campaigns
+            const normalizedTasks = (tasksData || []).map(task => ({
+                id: task.id,
+                title: task.title,
+                description: task.description,
+                budget: task.reward, // Map reward to budget
+                deadline: null, // Tasks might not have deadline
+                created_at: task.created_at,
+                type: 'task', // innovative flag
+                brands: {
+                    company_name: 'Platform Task',
+                    logo_url: null, // Could use a default icon
+                    location: 'Remote'
+                }
+            }));
+            
+            // Normalize Campaigns (keep existing structure)
+            const normalizedCampaigns = (campaignsData || []).map(c => ({
+                ...c,
+                type: 'campaign'
+            }));
+
+            // Combine
+            const allOpportunities = [...normalizedCampaigns, ...normalizedTasks].sort(
+                (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            );
+
+            setCampaigns(allOpportunities);
         } catch (error) {
-            console.error("Error fetching campaigns:", error);
+            console.error("Error fetching opportunities:", error);
         } finally {
             setLoading(false);
         }
@@ -143,7 +182,13 @@ const BrowseCampaigns: React.FC = () => {
                                             </div>
                                             <Button 
                                                 variant="primary" 
-                                                onClick={() => router.push(`/influencer/campaigns/${campaign.id}`)}
+                                                onClick={() => {
+                                                    if ((campaign as any).type === 'task') {
+                                                        router.push(`/influencer/tasks/${campaign.id}`);
+                                                    } else {
+                                                        router.push(`/influencer/campaigns/${campaign.id}`);
+                                                    }
+                                                }}
                                                 className="shadow-md shadow-indigo-200 hover:shadow-indigo-300 transition-all"
                                             >
                                                 View Details

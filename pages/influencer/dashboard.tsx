@@ -12,7 +12,10 @@ import { Video, DollarSign, CheckCircle, Clock } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import Head from 'next/head';
 
-const InfluencerDashboard: React.FC = () => {
+import type { ReactElement } from 'react';
+import type { NextPageWithLayout } from '../_app';
+
+const InfluencerDashboard: NextPageWithLayout = () => {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [influencer, setInfluencer] = useState<Influencer | null>(null);
@@ -116,16 +119,14 @@ const InfluencerDashboard: React.FC = () => {
 
   if (authLoading || loading) {
     return (
-      <Layout>
         <div className="flex items-center justify-center h-64">
           <div className="text-gray-500">Loading...</div>
         </div>
-      </Layout>
     );
   }
 
   return (
-    <Layout>
+    <>
       <Head>
         <title>Dashboard - Cehpoint Marketing Partners</title>
       </Head>
@@ -282,8 +283,12 @@ const InfluencerDashboard: React.FC = () => {
           </>
         )}
       </div>
-    </Layout>
+    </>
   );
+};
+
+InfluencerDashboard.getLayout = (page: ReactElement) => {
+  return <Layout>{page}</Layout>;
 };
 
 export default InfluencerDashboard;

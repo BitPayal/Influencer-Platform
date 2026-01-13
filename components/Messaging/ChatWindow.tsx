@@ -10,10 +10,12 @@ import { ArrowLeft } from 'lucide-react';
 interface ChatWindowProps {
     recipientId: string;
     recipientName: string;
+    recipientEmail?: string;
+    recipientStatus?: string;
     onBack?: () => void;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ recipientId, recipientName, onBack }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ recipientId, recipientName, recipientEmail, recipientStatus, onBack }) => {
     const { user } = useAuth();
     const [isOnline, setIsOnline] = useState(false);
     const [messages, setMessages] = useState<any[]>([]);
@@ -104,6 +106,16 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ recipientId, recipientName, onB
 
     // ... (rest of code)
 
+    const getStatusBadge = (status?: string) => {
+        if (!status) return null;
+        switch(status) {
+            case 'approved': return <span className="bg-green-100 text-green-700 text-[10px] px-1.5 py-0.5 rounded-full font-medium border border-green-200 uppercase">Approved</span>;
+            case 'rejected': return <span className="bg-red-100 text-red-700 text-[10px] px-1.5 py-0.5 rounded-full font-medium border border-red-200 uppercase">Rejected</span>;
+            case 'pending': return <span className="bg-yellow-100 text-yellow-700 text-[10px] px-1.5 py-0.5 rounded-full font-medium border border-yellow-200 uppercase">Pending</span>;
+            default: return null;
+        }
+    }
+
     return (
         <div className="flex flex-col h-full bg-white">
             {/* Header */}
@@ -126,13 +138,20 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ recipientId, recipientName, onB
                         {recipientName.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                        <h3 className="font-bold text-gray-900">{recipientName}</h3>
-                        {isOnline && (
-                            <span className="flex items-center gap-1.5">
-                                <span className="h-2 w-2 rounded-full bg-green-500"></span>
-                                <span className="text-xs text-green-600 font-medium">Online</span>
-                            </span>
-                        )}
+                        <div className="flex items-center gap-2">
+                             <h3 className="font-bold text-gray-900">{recipientName}</h3>
+                             {getStatusBadge(recipientStatus)}
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                            {recipientEmail && <span className="text-xs text-gray-500">{recipientEmail}</span>}
+                            {isOnline && (
+                                <span className="flex items-center gap-1.5">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+                                    <span className="text-[10px] text-green-600 font-medium">Online</span>
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

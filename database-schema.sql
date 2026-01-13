@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS influencers (
   approval_status TEXT DEFAULT 'pending' CHECK (approval_status IN ('pending', 'approved', 'rejected')),
   approved_at TIMESTAMPTZ,
   approved_by UUID REFERENCES users(id),
+  video_rate INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -212,6 +213,39 @@ CREATE POLICY "Admins can manage all payments" ON payments
 -- Insert a default admin user (update the email as needed)
 -- You'll need to create this user in Supabase Auth first, then run:
 -- INSERT INTO users (id, email, role) VALUES ('your-user-uuid', 'admin@example.com', 'admin');
+
+-- Tasks table
+CREATE TABLE IF NOT EXISTS tasks (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  topic TEXT NOT NULL,
+  guidelines TEXT,
+  reward DECIMAL(10, 2) DEFAULT 0,
+  project_id UUID, -- Simplified to avoid FK issues if table missing
+  month TEXT,
+  year INTEGER,
+  is_default BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- RLS for Tasks
+ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admins can manage tasks" ON tasks
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+CREATE POLICY "Influencers can view tasks" ON tasks
+  FOR SELECT USING (true);
+
+-- Trigger for updated_at
+CREATE TRIGGER update_tasks_updated_at BEFORE UPDATE ON tasks
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- NEW TABLES FOR PLATFORM EXPANSION --
 

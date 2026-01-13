@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/router";
 
+import { Toast } from '@/components/ui/Toast';
+
 const AssignTasksPage = () => {
   const { user } = useAuth();
   const router = useRouter();
@@ -16,6 +18,7 @@ const AssignTasksPage = () => {
 
   const [selectedInfluencer, setSelectedInfluencer] = useState("");
   const [selectedTask, setSelectedTask] = useState("");
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
     if (user === undefined) return;
@@ -62,7 +65,7 @@ const AssignTasksPage = () => {
 
   const handleAssign = async () => {
     if (!selectedInfluencer || !selectedTask) {
-      alert("Please select both influencer and task.");
+      setToast({ message: "Please select both influencer and task.", type: 'error' });
       return;
     }
 
@@ -71,26 +74,32 @@ const AssignTasksPage = () => {
       const month = new Date().toLocaleString("default", { month: "long" });
       const year = new Date().getFullYear();
 
-      const { error } = await supabase.from("task_assignments").insert([
-        {
-          influencer_id: selectedInfluencer,
-          task_id: selectedTask,
+      // Ensure IDs are parsed as numbers if they are strings representing numbers
+      // But if standard UUIDs are used (which might be the case for Auth IDs, but here we deal with BIGINT table IDs)
+      // The previous error was uuid vs bigint. 
+      // So valid input for BIGINT in JS is number or string. 
+      // Supabase client should handle string->bigint if format is correct.
+      // However, if the SELECT returned strings (which it often does for BigInt to avoid overflow), we are fine.
+      
+      const payload = {
+          influencer_id: selectedInfluencer, // This should be the BIGINT ID from the influencers table
+          task_id: selectedTask,           // This should be the BIGINT ID from the tasks table
           status: "assigned",
           assigned_month: month,
           assigned_year: year,
-          created_by: user.id,
-        },
-      ] as any);
+      };
+
+      const { error } = await supabase.from("task_assignments").insert([payload] as any);
 
       if (error) throw error;
 
-      alert("Task assigned successfully!");
+      setToast({ message: "Task assigned successfully!", type: 'success' });
       setSelectedInfluencer("");
       setSelectedTask("");
 
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error assigning task:", err);
-      alert("Failed to assign task.");
+      setToast({ message: "Failed to assign task: " + (err.message || err.details || ""), type: 'error' });
     }
   };
 
@@ -148,6 +157,14 @@ const AssignTasksPage = () => {
           Assign Task
         </Button>
       </Card>
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </Layout>
   );
 };

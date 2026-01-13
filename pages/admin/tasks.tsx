@@ -20,6 +20,8 @@ const AdminTasksPage = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    topic: '',
+    guidelines: '',
     reward: 0
   });
 
@@ -53,19 +55,25 @@ const AdminTasksPage = () => {
         {
           title: formData.title,
           description: formData.description,
+          topic: formData.topic,
+          guidelines: formData.guidelines,
           reward: formData.reward,
-          project_id: null // you can update later
+          project_id: null,
+          month: new Date().toLocaleString('default', { month: 'long' }),
+          year: new Date().getFullYear(),
+          is_default: false
         }
       ] as any);
 
     if (error) {
       console.error(error);
-      alert("Failed to create task");
+      console.error('Task creation error:', error);
+      alert(`Failed to create task: ${error.message || error.details || JSON.stringify(error)}`);
       return;
     }
 
     setShowCreateModal(false);
-    setFormData({ title: '', description: '', reward: 0 });
+    setFormData({ title: '', description: '', topic: '', guidelines: '', reward: 0 });
     fetchTasks();
   };
 
@@ -128,18 +136,40 @@ const AdminTasksPage = () => {
             required
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            placeholder="e.g. EdTech Awareness Campaign"
+          />
+
+          <Input
+            label="Topic"
+            required
+            value={formData.topic}
+            onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
+            placeholder="e.g. Benefits of Online Learning"
           />
 
           <div>
-            <label className="block text-sm font-medium">Description</label>
+             <label className="block text-sm font-medium mb-1">Guidelines</label>
+             <textarea
+               className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
+               required
+               rows={4}
+               value={formData.guidelines}
+               onChange={(e) => setFormData({ ...formData, guidelines: e.target.value })}
+               placeholder="Enter detailed guidelines for the influencer..."
+             ></textarea>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Description</label>
             <textarea
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
               required
               rows={3}
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
+              placeholder="Short description of the task"
             ></textarea>
           </div>
 

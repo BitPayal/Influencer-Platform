@@ -28,16 +28,25 @@ const InfluencerRevenuePage = () => {
         }
     }, [user, authLoading]);
 
+    // Add approval status state
+    const [approvalStatus, setApprovalStatus] = useState<string | null>(null);
+
     const fetchEarnings = async () => {
         try {
             // 1. Get Influencer ID
             const { data: influencer } = await supabase
                 .from('influencers')
-                .select('id')
+                .select('id, approval_status')
                 .eq('user_id', user?.id)
                 .single();
 
             if (!influencer) return;
+            
+            setApprovalStatus((influencer as any).approval_status);
+
+            if ((influencer as any).approval_status !== 'approved') {
+                return;
+            }
 
             // 2. Fetch Payments
             const { data: paymentsData, error } = await supabase
@@ -72,6 +81,27 @@ const InfluencerRevenuePage = () => {
             </div>
         </Layout>
     );
+
+    if (approvalStatus !== 'approved') {
+        return (
+          <Layout>
+            <Head>
+                <title>My Earnings - Cehpoint</title>
+            </Head>
+            <div className="text-center py-12">
+              <DollarSign className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                Account Not Approved
+              </h2>
+              <p className="text-gray-600">
+                {approvalStatus === 'rejected' 
+                  ? "Your application was not approved. Please contact support." 
+                  : "Your account is pending approval. You will be notified once reviewed."}
+              </p>
+            </div>
+          </Layout>
+        );
+    }
 
     return (
         <Layout>

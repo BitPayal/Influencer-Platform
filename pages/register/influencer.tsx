@@ -191,8 +191,8 @@ let sessionUser = signUpData.user;
       id_proof_type: formData.idProofType,
       id_proof_url: uploadedIdProofUrl,
       upi_id: formData.upiId,
-      approval_status: 'approved',
-      approved_at: new Date().toISOString(),
+      approval_status: 'pending',
+      // approved_at should only be set by admin upon approval
     } as any);
   
   const { error: influencerError } = await Promise.race([

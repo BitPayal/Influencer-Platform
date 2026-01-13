@@ -1,68 +1,140 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { Camera, Building2, LogIn } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { useAuth } from '@/contexts/AuthContext';
+import { AlertCircle } from 'lucide-react';
+import { Input } from '@/components/ui/Input';
 
-const LoginSelection: React.FC = () => {
+const LoginPage: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [formLoading, setFormLoading] = useState(false);
+
+  const router = useRouter();
+  const { login } = useAuth();
+
+  // Prevent state update on unmount
+  const mounted = React.useRef(true);
+  React.useEffect(() => {
+    return () => { mounted.current = false; };
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setFormLoading(true);
+
+    try {
+      const result = await login(email, password);
+      
+      if (!result.success) {
+        setError(result.error || 'Login failed. Please check your credentials.');
+        if (mounted.current) setFormLoading(false);
+        return;
+      }
+      
+      console.log('Login successful, redirecting...', result.role);
+      
+      if (result.role === 'admin') {
+          router.replace('/admin/dashboard');
+      } else {
+          router.replace('/influencer/dashboard');
+      }
+    } catch (err: any) {
+      console.warn('Unexpected login error:', err);
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      if (mounted.current && error) setFormLoading(false);
+      // Note: If success, we don't set loading false to avoid UI flicker before redirect
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-orange-50 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen flex flex-col justify-center relative overflow-hidden bg-gradient-to-br from-orange-50 via-white to-amber-50">
       <Head>
-        <title>Login - Cehpoint Influence Partners</title>
+        <title>Login - Cehpoint</title>
       </Head>
 
-      <div className="max-w-4xl w-full">
-        <div className="text-center mb-12 animate-fade-in-up">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="absolute top-[10%] left-[5%] w-[35%] h-[35%] rounded-full bg-orange-200/20 blur-3xl"></div>
+          <div className="absolute bottom-[20%] right-[5%] w-[30%] h-[30%] rounded-full bg-amber-200/20 blur-3xl"></div>
+      </div>
+
+      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+        <div className="text-center mb-8">
             <Link href="/">
-                <h1 className="text-4xl font-extrabold text-gray-900 mb-4 cursor-pointer">
-                    Welcome <span className="text-indigo-600">Back</span>
+                <h1 className="text-4xl font-extrabold cursor-pointer tracking-tight">
+                    <span className="text-orange-600">Cehpoint</span> <span className="text-gray-900">Partners</span>
                 </h1>
             </Link>
-          <p className="text-xl text-gray-600">Select your account type to login</p>
+          <p className="mt-3 text-gray-600 text-lg">
+            Login to your account
+          </p>
         </div>
+      </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-          {/* Influencer Card */}
-          <Link href="/login/influencer" className="group">
-            <div className="bg-white p-8 rounded-2xl shadow-xl border-2 border-transparent hover:border-orange-500 transition-all duration-300 transform hover:-translate-y-1 h-full flex flex-col items-center text-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-orange-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="relative z-10 p-4 bg-orange-100 rounded-full mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Camera size={48} className="text-orange-600" />
+      <div className="mt-4 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+        <div className="bg-white/80 backdrop-blur-lg py-10 px-8 shadow-2xl rounded-2xl border border-white/50">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {error && (
+              <div className="mb-4 flex items-center gap-2 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-700">
+                <AlertCircle className="h-4 w-4" />
+                {error}
               </div>
-              <h2 className="relative z-10 text-2xl font-bold text-gray-900 mb-3">Influencer Login</h2>
-              <p className="relative z-10 text-gray-600 mb-8">
-                Access your dashboard, view campaigns, and track earnings.
-              </p>
-              <div className="relative z-10 mt-auto flex items-center text-orange-600 font-bold group-hover:gap-2 transition-all">
-                Login <LogIn size={20} className="ml-2" />
-              </div>
+            )}
+            
+            <Input
+              id="email"
+              label="Email Address"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="bg-white/50"
+            />
+
+            <Input
+              id="password"
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="bg-white/50"
+            />
+
+            <Button
+              type="submit"
+              variant="primary"
+              className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white transform transition-all duration-200 hover:scale-[1.02] shadow-lg hover:shadow-orange-500/30 font-medium py-2.5"
+              isLoading={formLoading}
+            >
+              Login
+            </Button>
+            
+            <div className="flex items-center justify-end">
+              <Link href="/forgot-password" className="text-sm font-medium text-orange-600 hover:text-orange-500">
+                Forgot your password?
+              </Link>
             </div>
-          </Link>
+          </form>
 
-          {/* Brand Card */}
-          <Link href="/login/brand" className="group">
-            <div className="bg-white p-8 rounded-2xl shadow-xl border-2 border-transparent hover:border-indigo-500 transition-all duration-300 transform hover:-translate-y-1 h-full flex flex-col items-center text-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="relative z-10 p-4 bg-indigo-100 rounded-full mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Building2 size={48} className="text-indigo-600" />
-              </div>
-              <h2 className="relative z-10 text-2xl font-bold text-gray-900 mb-3">Brand Login</h2>
-              <p className="relative z-10 text-gray-600 mb-8">
-                Manage campaigns, approve proposals, and view analytics.
-              </p>
-              <div className="relative z-10 mt-auto flex items-center text-indigo-600 font-bold group-hover:gap-2 transition-all">
-                Login <LogIn size={20} className="ml-2" />
-              </div>
-            </div>
-          </Link>
-        </div>
-
-        <div className="text-center mt-12 text-gray-500 text-sm">
-          Don't have an account?{' '}
-          <Link href="/register" className="text-indigo-600 hover:underline px-1 font-semibold">Get Started</Link>
+          <div className="mt-8 text-center">
+            <p className="text-sm text-gray-600">
+              Not joined yet?{' '}
+              <Link href="/register" className="font-semibold text-orange-600 hover:text-orange-500 transition-colors">
+                Register here
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default LoginSelection;
+export default LoginPage;
