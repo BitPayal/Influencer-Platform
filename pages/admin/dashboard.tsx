@@ -52,9 +52,13 @@ const AdminDashboard: NextPageWithLayout = () => {
         }
       );
 
+      const pendingInfluencersCount = influencers?.filter((i) => i.approval_status === 'pending').length || 0;
+
       const statsData: AdminDashboardStats = {
         total_influencers: influencers?.length || 0,
-        pending_approvals: (influencers?.filter((i) => i.approval_status === 'pending').length || 0) + (pendingTasksCount || 0),
+        pending_approvals: pendingInfluencersCount + (pendingTasksCount || 0),
+        pending_influencers: pendingInfluencersCount,
+        pending_task_applications: pendingTasksCount || 0,
         approved_influencers:
           influencers?.filter((i) => i.approval_status === 'approved').length || 0,
         rejected_influencers:
@@ -109,9 +113,16 @@ const AdminDashboard: NextPageWithLayout = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm text-gray-600">Total Influencers</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats?.total_influencers || 0}
-                </p>
+                <div className="flex items-baseline gap-2">
+                    <p className="text-2xl font-bold text-gray-900">
+                    {stats?.total_influencers || 0}
+                    </p>
+                    {(stats?.pending_influencers || 0) > 0 && (
+                        <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
+                            {stats?.pending_influencers} Pending
+                        </span>
+                    )}
+                </div>
               </div>
             </div>
           </Card>
@@ -125,9 +136,9 @@ const AdminDashboard: NextPageWithLayout = () => {
                 <Clock className="h-6 w-6 text-yellow-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm text-gray-600">Pending Approvals</p>
+                <p className="text-sm text-gray-600">Pending Task Apps</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {stats?.pending_approvals || 0}
+                  {stats?.pending_task_applications || 0}
                 </p>
               </div>
             </div>

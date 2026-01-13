@@ -117,6 +117,8 @@ export interface InfluencerStats {
 export interface AdminDashboardStats {
   total_influencers: number;
   pending_approvals: number;
+  pending_task_applications?: number;
+  pending_influencers?: number;
   approved_influencers: number;
   rejected_influencers: number;
   total_videos_submitted: number;

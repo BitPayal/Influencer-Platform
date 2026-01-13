@@ -232,6 +232,37 @@ const AdminInfluencers: NextPageWithLayout = () => {
                     <TableCell>{formatDateTime(influencer.created_at)}</TableCell>
                     <TableCell>{getStatusBadge(influencer.approval_status)}</TableCell>
                     <TableCell>
+                      <div className="flex gap-2">
+                      {influencer.approval_status === 'pending' && (
+                        <>
+                          <Button
+                            variant="primary" // Green-ish usually implies approve, but stick to variant names. 
+                            // Primary is usually blue/indigo. Let's make it green if possible or just use icons.
+                            // Actually, let's use the styles from the modal or simple icon buttons to save space.
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700 text-white px-2"
+                            title="Approve"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleApprove(influencer.id);
+                            }}
+                          >
+                             <CheckCircle className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            className="px-2"
+                            title="Reject"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleReject(influencer.id);
+                            }}
+                          >
+                             <XCircle className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
                       <Button
                         variant="secondary"
                         size="sm"
@@ -240,16 +271,16 @@ const AdminInfluencers: NextPageWithLayout = () => {
                           setModalOpen(true);
                         }}
                       >
-                        View Details
+                        View
                       </Button>
                       <Button
                         variant="secondary"
                         size="sm"
-                        className="ml-2"
                         onClick={() => router.push(`/messages?userId=${influencer.user_id}`)}
                       >
                         <MessageSquare className="h-4 w-4" />
                       </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
