@@ -29,8 +29,8 @@ const TaskDetailsPage = () => {
   const fetchTaskDetails = async () => {
     try {
       // 1. Fetch Task
-      const { data: taskData, error: taskError } = await supabase
-        .from('tasks')
+      const { data: taskData, error: taskError } = await (supabase
+        .from('tasks') as any)
         .select('*')
         .eq('id', id)
         .single();
@@ -39,15 +39,15 @@ const TaskDetailsPage = () => {
       setTask(taskData);
 
       // 2. Check if already "applied" or assigned (check influencer_tasks)
-      const { data: influencer } = await supabase
-        .from('influencers')
+      const { data: influencer } = await (supabase
+        .from('influencers') as any)
         .select('id')
         .eq('user_id', user?.id)
         .single();
 
       if (influencer) {
-        const { data: assignment } = await supabase
-          .from('influencer_tasks')
+        const { data: assignment } = await (supabase
+          .from('influencer_tasks') as any)
           .select('*')
           .eq('task_id', id)
           .eq('influencer_id', influencer.id)
@@ -74,8 +74,8 @@ const TaskDetailsPage = () => {
     e.preventDefault();
     setApplying(true);
     try {
-      const { data: influencer } = await supabase
-        .from('influencers')
+      const { data: influencer } = await (supabase
+        .from('influencers') as any)
         .select('id')
         .eq('user_id', user?.id)
         .single();
@@ -86,8 +86,8 @@ const TaskDetailsPage = () => {
       }
 
       // Create Task Application
-      const { error } = await supabase
-        .from('influencer_tasks')
+      const { error } = await (supabase
+        .from('influencer_tasks') as any)
         .insert([{
           task_id: id,
           influencer_id: influencer.id,
