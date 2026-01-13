@@ -137,7 +137,7 @@ export interface MarketingProject {
   title: string;
   description: string;
   objectives: string[];
-  target_audience: string;
+  target_audience: string[];
   deliverables: string[];
   guidelines: string;
   sample_script?: string;
