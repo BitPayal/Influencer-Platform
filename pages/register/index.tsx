@@ -173,8 +173,8 @@ let sessionUser = signUpData.user;
   
     // insert influencer
     console.log('Inserting into influencers table with pending status...');
-    const { data: newInfluencer, error: influencerError } = await supabase
-      .from('influencers')
+    const { data: newInfluencer, error: influencerError } = await (supabase
+      .from('influencers') as any)
       .insert({
         user_id: userId,
         full_name: formData.fullName,
