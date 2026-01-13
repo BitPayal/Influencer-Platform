@@ -135,102 +135,113 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = async (
     email: string,
     password: string,
-    expectedRole?: UserRole // Optional role to enforce during login
+    expectedRole?: UserRole
   ): Promise<{ success: boolean; role?: UserRole; error?: string }> => {
-    try {
-      // 1. Authenticate
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    // Helper to run the actual login logic
+    const attemptLogin = async () => {
+      try {
+        // 1. Authenticate
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-      if (error) {
-        // Return error gracefully without logging as error to avoid strict mode overlays
-        return { success: false, error: error.message };
-      }
-
-      const session = data.session;
-      if (!session?.user) {
-        return { success: false, error: "No user session created" };
-      }
-
-      // 2. Fetch or Create Profile
-      let { data: profile, error: profileError } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", session.user.id)
-        .maybeSingle();
-
-      if (profileError) {
-        console.error("Error fetching profile during login:", profileError);
-        // Don't throw yet, try to recover if it's just missing
-      }
-
-      let userProfile = profile;
-
-      if (!userProfile) {
-        console.warn("User profile missing during login. Attempting to create...");
-        // Fallback: Create profile if it doesn't exist
-        const { data: newProfile, error: createError } = await (supabase
-          .from("users") as any)
-          .insert([
-            {
-              id: session.user.id,
-              email: session.user.email,
-              role: expectedRole || "influencer", // Default to expected or influencer
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-          ])
-          .select()
-          .single();
-
-        if (createError || !newProfile) {
-          console.error("Failed to create missing profile:", createError);
-          await supabase.auth.signOut();
-          return { success: false, error: "User profile verification failed. Please contact support." };
+        if (error) {
+          return { success: false, error: error.message };
         }
-        userProfile = newProfile;
-      }
 
-      if (!userProfile) {
-        return { success: false, error: "Unexpected error: User profile not found." };
-      }
+        const session = data.session;
+        if (!session?.user) {
+          return { success: false, error: "No user session created" };
+        }
 
-      // 3. Verify Role - Strict Role Check
-      // Valid roles now include 'marketing'
-      const validRoles: UserRole[] = ['admin', 'influencer', 'marketing'];
-      const userRole = (userProfile as any).role;
-      
-      if (!validRoles.includes(userRole)) {
-         console.warn(`Unauthorized role: ${userRole}`);
-         await supabase.auth.signOut();
-         return {
-           success: false,
-           error: "Access Denied: Invalid user role."
-         };
-      }
-      
-      // If a specific role was expected (e.g. login from Brand portal), enforce it
-      if (expectedRole && userRole !== expectedRole) {
-           console.warn(`Role mismatch. Expected ${expectedRole}, got ${userRole}`);
+        // 2. Fetch or Create Profile
+        let { data: profile, error: profileError } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", session.user.id)
+          .maybeSingle();
+
+        if (profileError) {
+          console.error("Error fetching profile during login:", profileError);
+        }
+
+        let userProfile = profile;
+
+        if (!userProfile) {
+          console.warn("User profile missing during login. Attempting to create...");
+          // Fallback: Create profile if it doesn't exist
+          const { data: newProfile, error: createError } = await (supabase
+            .from("users") as any)
+            .insert([
+              {
+                id: session.user.id,
+                email: session.user.email,
+                role: expectedRole || "influencer",
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              },
+            ])
+            .select()
+            .single();
+
+          if (createError || !newProfile) {
+            console.error("Failed to create missing profile:", createError);
+            await supabase.auth.signOut();
+            return { success: false, error: "User profile verification failed. Contact support." };
+          }
+          userProfile = newProfile;
+        }
+
+        if (!userProfile) {
+          return { success: false, error: "Unexpected error: User profile not found." };
+        }
+
+        // 3. Verify Role
+        const validRoles: UserRole[] = ['admin', 'influencer', 'marketing'];
+        const userRole = (userProfile as any).role;
+        
+        if (!validRoles.includes(userRole)) {
+           console.warn(`Unauthorized role: ${userRole}`);
            await supabase.auth.signOut();
            return {
-               success: false,
-               error: `Access Denied: This account is registered as a ${userRole}, not a ${expectedRole}.`
+             success: false,
+             error: "Access Denied: Invalid user role."
            };
-      }
+        }
+        
+        if (expectedRole && userRole !== expectedRole) {
+             console.warn(`Role mismatch. Expected ${expectedRole}, got ${userRole}`);
+             await supabase.auth.signOut();
+             return {
+                 success: false,
+                 error: `Access Denied: Account is ${userRole}, not ${expectedRole}.`
+             };
+        }
 
-      console.log("Login successful:", session.user.id);
-      return { success: true, role: userRole };
-    } catch (error: any) {
-      console.error("Login failed:", error);
-      // Ensure we clear any partial session if we failed validity checks
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        await supabase.auth.signOut();
+        console.log("Login successful:", session.user.id);
+        return { success: true, role: userRole };
+      } catch (error: any) {
+        console.error("Login logic error:", error);
+        // Clean up partial session
+        const { data } = await supabase.auth.getSession();
+        if (data.session) await supabase.auth.signOut();
+        return { success: false, error: error.message || "An unexpected error occurred." };
       }
-      return { success: false, error: error.message || "An unexpected error occurred during login." };
+    };
+
+    // Race between login attempt and a 15s timeout
+    const TIMEOUT_MS = 15000;
+    const timeoutPromise = new Promise<{ success: boolean; error: string }>((resolve) => {
+      setTimeout(() => {
+        resolve({ success: false, error: "Login timed out. Please check your connection." });
+      }, TIMEOUT_MS);
+    });
+
+    try {
+      return await Promise.race([attemptLogin(), timeoutPromise]);
+    } catch (err: any) {
+      return { success: false, error: "Unexpected system error during login." };
     }
   };
 

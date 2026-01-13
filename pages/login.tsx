@@ -46,10 +46,9 @@ const LoginPage: React.FC = () => {
     } catch (err: any) {
       console.warn('Unexpected login error:', err);
       setError('An unexpected error occurred. Please try again.');
-    } finally {
-      if (mounted.current && error) setFormLoading(false);
-      // Note: If success, we don't set loading false to avoid UI flicker before redirect
+      if (mounted.current) setFormLoading(false);
     }
+    // No finally block needed as we handle loading state explicitly in success/failure paths
   };
 
   return (

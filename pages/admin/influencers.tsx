@@ -264,107 +264,177 @@ const AdminInfluencers: NextPageWithLayout = () => {
               title="Influencer Details"
               size="lg"
             >
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-6 max-h-[70vh] overflow-y-auto p-1">
+                {/* Header Section with Status */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-gray-100">
                   <div>
-                    <p className="text-sm text-gray-600">Full Name</p>
-                    <p className="font-medium">{selectedInfluencer.full_name}</p>
+                    <h3 className="text-xl font-bold text-gray-900">{selectedInfluencer.full_name}</h3>
+                    <p className="text-sm text-gray-500">{selectedInfluencer.district}, {selectedInfluencer.state}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Phone Number</p>
-                    <p className="font-medium">{selectedInfluencer.phone_number}</p>
+                  <div className="flex items-center gap-2">
+                     <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Status:</span>
+                     {getStatusBadge(selectedInfluencer.approval_status)}
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Email</p>
-                    <p className="font-medium">{selectedInfluencer.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">District</p>
-                    <p className="font-medium">
-                      {selectedInfluencer.district}, {selectedInfluencer.state}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Follower Count</p>
-                    <p className="font-medium">
-                      {selectedInfluencer.follower_count.toLocaleString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">ID Proof Type</p>
-                    <p className="font-medium uppercase">
-                      {selectedInfluencer.id_proof_type}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">UPI ID</p>
-                    <p className="font-medium">{selectedInfluencer.upi_id}</p>
-                  </div>
-                  <div>
-                    {getStatusBadge(selectedInfluencer.approval_status)}
-                  </div>
-                  <div className="col-span-2 border-t pt-4 mt-2">
-                    <label className="text-sm text-gray-600 block mb-1">Video Pay Rate (₹)</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="number"
-                        className="flex-1 p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                        value={editRate}
-                        onChange={(e) => setEditRate(e.target.value)}
-                        placeholder="Enter rate per video"
-                      />
-                      <Button size="sm" onClick={handleUpdateRate}>Update Rate</Button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Personal Contact Info */}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2">
+                        Contact Info
+                    </h4>
+                    <div className="grid grid-cols-1 gap-3">
+                       <div className="bg-gray-50 p-3 rounded-lg">
+                          <p className="text-xs text-gray-500 mb-1">Email Address</p>
+                          <p className="font-medium text-gray-900 break-all">{selectedInfluencer.email}</p>
+                       </div>
+                       <div className="bg-gray-50 p-3 rounded-lg">
+                          <p className="text-xs text-gray-500 mb-1">Phone Number</p>
+                          <p className="font-medium text-gray-900">{selectedInfluencer.phone_number}</p>
+                       </div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Fixed amount paid for each approved video.
-                    </p>
+                  </div>
+
+                  {/* Platform Stats */}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2">
+                        Platform Stats
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                            <p className="text-xs text-blue-600 mb-1">Followers</p>
+                            <p className="text-lg font-bold text-blue-900">
+                                {selectedInfluencer.follower_count.toLocaleString()}
+                            </p>
+                        </div>
+                        <div className="bg-purple-50 p-3 rounded-lg border border-purple-100">
+                             <p className="text-xs text-purple-600 mb-1">Joined</p>
+                             <p className="font-medium text-purple-900 text-sm">
+                                {new Date(selectedInfluencer.created_at).toLocaleDateString()}
+                             </p>
+                        </div>
+                    </div>
                   </div>
                 </div>
-  
+
+                {/* Social Media Section */}
                 <div>
-                  <p className="text-sm text-gray-600 mb-2">Social Media Handles</p>
-                  <div className="bg-gray-50 p-3 rounded space-y-1">
-                    {selectedInfluencer.social_media_handles?.instagram && (
-                      <p>Instagram: {selectedInfluencer.social_media_handles.instagram}</p>
-                    )}
-                    {selectedInfluencer.social_media_handles?.youtube && (
-                      <p>YouTube: {selectedInfluencer.social_media_handles.youtube}</p>
-                    )}
-                    {selectedInfluencer.social_media_handles?.facebook && (
-                      <p>Facebook: {selectedInfluencer.social_media_handles.facebook}</p>
-                    )}
-                  </div>
+                   <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2 mb-3">
+                        Social Profiles
+                    </h4>
+                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {selectedInfluencer.social_media_handles?.instagram && (
+                        <div className="flex items-center p-3 bg-pink-50 rounded-lg border border-pink-100">
+                            <span className="font-bold text-pink-600 mr-2">IG</span>
+                            <span className="truncate text-sm font-medium text-pink-900">
+                                {selectedInfluencer.social_media_handles.instagram}
+                            </span>
+                        </div>
+                      )}
+                      {selectedInfluencer.social_media_handles?.youtube && (
+                        <div className="flex items-center p-3 bg-red-50 rounded-lg border border-red-100">
+                             <span className="font-bold text-red-600 mr-2">YT</span>
+                             <span className="truncate text-sm font-medium text-red-900">
+                                {selectedInfluencer.social_media_handles.youtube}
+                             </span>
+                        </div>
+                      )}
+                      {selectedInfluencer.social_media_handles?.facebook && (
+                        <div className="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-100">
+                             <span className="font-bold text-blue-600 mr-2">FB</span>
+                             <span className="truncate text-sm font-medium text-blue-900">
+                                {selectedInfluencer.social_media_handles.facebook}
+                             </span>
+                        </div>
+                      )}
+                   </div>
                 </div>
-  
-                <div>
-                  <p className="text-sm text-gray-600 mb-2">ID Proof</p>
-                  {selectedInfluencer.id_proof_url && (
-                    <a
-                      href={selectedInfluencer.id_proof_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary-600 hover:text-primary-700"
-                    >
-                      View ID Proof
-                    </a>
-                  )}
+
+                {/* Payment & Verification Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Payment Settings */}
+                    <div>
+                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2 mb-3">
+                            Payment Settings
+                        </h4>
+                        <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                            <div>
+                                <p className="text-xs text-gray-500 mb-1">UPI ID</p>
+                                <p className="font-medium text-gray-900">{selectedInfluencer.upi_id}</p>
+                            </div>
+                            
+                            <div className="pt-3 border-t border-gray-200">
+                                <label className="text-xs font-semibold text-gray-700 block mb-2">
+                                    Video Pay Rate (₹)
+                                </label>
+                                <div className="flex gap-2">
+                                <input
+                                    type="number"
+                                    className="flex-1 p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+                                    value={editRate}
+                                    onChange={(e) => setEditRate(e.target.value)}
+                                    placeholder="Rate"
+                                />
+                                <Button size="sm" onClick={handleUpdateRate} className="shrink-0">
+                                    Update
+                                </Button>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1.5">
+                                    Fixed payment per approved video.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Verification */}
+                    <div>
+                         <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2 mb-3">
+                            Identity Verification
+                        </h4>
+                        <div className="bg-gray-50 rounded-lg p-4 h-full">
+                             <div className="flex justify-between items-center mb-3">
+                                <div>
+                                    <p className="text-xs text-gray-500">ID Type</p>
+                                    <p className="font-medium uppercase">{selectedInfluencer.id_proof_type}</p>
+                                </div>
+                                {selectedInfluencer.id_proof_url ? (
+                                    <Badge variant="success">Uploaded</Badge>
+                                ) : (
+                                    <Badge variant="danger">Missing</Badge>
+                                )}
+                             </div>
+                             
+                             {selectedInfluencer.id_proof_url && (
+                                <a
+                                href={selectedInfluencer.id_proof_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block w-full py-2 px-4 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 text-center hover:bg-gray-50 hover:text-primary-600 transition-colors"
+                                >
+                                View Document
+                                </a>
+                            )}
+                        </div>
+                    </div>
                 </div>
-  
+
                 {selectedInfluencer.approval_status === 'pending' && (
-                  <div className="flex justify-end space-x-3 pt-4 border-t">
+                  <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-gray-100 mt-2">
                     <Button
                       variant="danger"
+                      className="w-full sm:w-auto justify-center"
                       onClick={() => handleReject(selectedInfluencer.id)}
                     >
                       <XCircle className="h-4 w-4 mr-2" />
-                      Reject
+                      Reject Application
                     </Button>
                     <Button
                       variant="primary"
+                      className="w-full sm:w-auto justify-center"
                       onClick={() => handleApprove(selectedInfluencer.id)}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
-                      Approve
+                      Approve Influencer
                     </Button>
                   </div>
                 )}

@@ -105,150 +105,184 @@ const AdminProjectsPage = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
+      <div className="space-y-8">
+        {/* Header - Reponsive */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Marketing Projects</h1>
-            <p className="text-gray-600 mt-1">Manage IT service promotion campaigns</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Marketing Projects</h1>
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">Manage IT service promotion campaigns</p>
           </div>
-          <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+          <Button 
+            variant="primary" 
+            onClick={() => setShowCreateModal(true)}
+            className="w-full sm:w-auto"
+          >
             <Plus className="h-4 w-4 mr-2" />
             New Project
           </Button>
         </div>
 
         {/* PROJECTS LIST */}
-        <div className="grid gap-6">
+        <div className="min-h-[50vh]">
           {projects.length === 0 ? (
-            <Card className="text-center py-12">
-              <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No projects yet</h3>
-              <p className="text-gray-600 mb-4">
-                Create your first marketing campaign to get started
+            <div className="flex flex-col items-center justify-center p-8 sm:p-12 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 text-center">
+              <div className="h-16 w-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
+                 <Target className="h-8 w-8 text-primary-500" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No projects yet</h3>
+              <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                Create your first marketing campaign to start tracking objectives, target audiences, and deliverables.
               </p>
               <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+                <Plus className="h-4 w-4 mr-2" />
                 Create Project
               </Button>
-            </Card>
+            </div>
           ) : (
-            projects.map((project) => (
-              <Card key={project.id}>
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold">{project.title}</h3>
-                    <p className="text-gray-600 mt-1">{project.description}</p>
-                  </div>
-                  <Badge variant={project.is_active ? 'success' : 'warning'}>
-                    {project.is_active ? 'Active' : 'Inactive'}
-                  </Badge>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {projects.map((project) => (
+                <Card key={project.id} className="flex flex-col h-full hover:shadow-md transition-shadow">
+                    <div className="flex justify-between items-start mb-4">
+                    <div className="pr-4">
+                        <h3 className="text-lg font-bold text-gray-900 line-clamp-1" title={project.title}>
+                            {project.title}
+                        </h3>
+                        <p className="text-sm text-gray-500 mt-1 line-clamp-2" title={project.description}>
+                            {project.description}
+                        </p>
+                    </div>
+                    <Badge variant={project.is_active ? 'success' : 'warning'} className="shrink-0">
+                        {project.is_active ? 'Active' : 'Inactive'}
+                    </Badge>
+                    </div>
 
-                {/* OBJECTIVES */}
-                <div className="mt-4">
-                  <h4 className="font-semibold mb-2">Objectives</h4>
-                  <ul className="list-disc list-inside text-gray-600">
-                    {project.objectives?.map((obj, i) => (
-                      <li key={i}>{obj}</li>
-                    ))}
-                  </ul>
-                </div>
+                    <div className="flex-1 space-y-4">
+                        {/* OBJECTIVES */}
+                        {project.objectives && project.objectives.length > 0 && (
+                            <div>
+                                <h4 className="text-xs font-semibold uppercase text-gray-500 mb-2 tracking-wider">Objectives</h4>
+                                <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                                    {project.objectives.slice(0, 3).map((obj, i) => (
+                                    <li key={i} className="truncate">{obj}</li>
+                                    ))}
+                                    {project.objectives.length > 3 && (
+                                        <li className="text-xs text-primary-600 font-medium pl-4">+ {project.objectives.length - 3} more</li>
+                                    )}
+                                </ul>
+                            </div>
+                        )}
 
-                {/* TARGET AUDIENCE */}
-                <div className="mt-4">
-                  <h4 className="font-semibold mb-2">Target Audience</h4>
-                  <ul className="list-disc list-inside text-gray-600">
-                    {Array.isArray(project.target_audience) &&
-                      project.target_audience.map((aud, i) => (
-                        <li key={i}>{aud}</li>
-                      ))}
-                  </ul>
-                </div>
-
-                {/* GUIDELINES */}
-                {project.guidelines && (
-                  <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                    <h4 className="font-semibold mb-2">Guidelines</h4>
-                    <p className="text-sm whitespace-pre-wrap">{project.guidelines}</p>
-                  </div>
-                )}
-
-                {/* SAMPLE SCRIPT */}
-                {project.sample_script && (
-                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
-                    <h4 className="font-semibold mb-2">Sample Script</h4>
-                    <p className="italic text-sm whitespace-pre-wrap">
-                      {project.sample_script}
-                    </p>
-                  </div>
-                )}
-              </Card>
-            ))
+                        {/* TARGET AUDIENCE */}
+                        {project.target_audience && project.target_audience.length > 0 && (
+                             <div>
+                                <h4 className="text-xs font-semibold uppercase text-gray-500 mb-2 tracking-wider mt-4">Target Audience</h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {project.target_audience.slice(0, 4).map((aud, i) => (
+                                    <span key={i} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md">
+                                        {aud}
+                                    </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    
+                    <div className="mt-6 pt-4 border-t border-gray-100 flex justify-between items-center text-sm text-gray-500">
+                        <span>{new Date(project.created_at).toLocaleDateString()}</span>
+                        <Button variant="ghost" size="sm" className="text-primary-600 hover:text-primary-700 p-0 hover:bg-transparent">
+                            View Details →
+                        </Button>
+                    </div>
+                </Card>
+                ))}
+            </div>
           )}
         </div>
       </div>
 
       {/* CREATE MODAL */}
-      <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} title="Create New Project">
-        <form onSubmit={handleCreateProject} className="space-y-4">
-
+      <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} title="Create New Project" size="lg">
+        <form onSubmit={handleCreateProject} className="space-y-5">
           <Input
             label="Project Title"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             required
+            placeholder="e.g., Q3 Cloud Migration Campaign"
           />
 
-          <textarea
-            className="input-field"
-            rows={3}
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            required
-            placeholder="Project description"
-          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 outline-none text-sm"
+                rows={3}
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                required
+                placeholder="Briefly describe the campaign goals..."
+            />
+          </div>
 
-          <textarea
-            className="input-field"
-            rows={3}
-            value={formData.objectives.join(', ')}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                objectives: e.target.value.split(',').map((s) => s.trim()),
-              })
-            }
-            placeholder="Objectives (comma-separated)"
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+             <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Objectives</label>
+                <textarea
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 outline-none text-sm"
+                    rows={4}
+                    value={formData.objectives.join(', ')}
+                    onChange={(e) =>
+                    setFormData({
+                        ...formData,
+                        objectives: e.target.value.split(',').map((s) => s.trim()),
+                    })
+                    }
+                    placeholder="Increase brand awareness, Generate leads (comma-separated)"
+                />
+                 <p className="text-xs text-gray-500 mt-1">Separate multiple objectives with commas</p>
+             </div>
 
-          <Input
-            label="Target Audience (comma-separated)"
-            value={formData.target_audience.join(', ')}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                target_audience: e.target.value.split(',').map((s) => s.trim()),
-              })
-            }
-          />
+             <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Target Audience</label>
+                 <textarea
+                     className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 outline-none text-sm"
+                     rows={4}
+                     value={formData.target_audience.join(', ')}
+                     onChange={(e) =>
+                     setFormData({
+                         ...formData,
+                         target_audience: e.target.value.split(',').map((s) => s.trim()),
+                     })
+                     }
+                     placeholder="CTOs, Small Business Owners, IT Managers (comma-separated)"
+                 />
+                 <p className="text-xs text-gray-500 mt-1">Separate audience segments with commas</p>
+             </div>
+          </div>
 
-          <textarea
-            className="input-field"
-            rows={4}
-            value={formData.guidelines}
-            onChange={(e) => setFormData({ ...formData, guidelines: e.target.value })}
-            placeholder="Guidelines"
-          />
+          <div>
+             <label className="block text-sm font-medium text-gray-700 mb-1">Guidelines</label>
+             <textarea
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 outline-none text-sm"
+                rows={4}
+                value={formData.guidelines}
+                onChange={(e) => setFormData({ ...formData, guidelines: e.target.value })}
+                placeholder="Specific do's and don'ts for the influencers..."
+             />
+          </div>
 
-          <textarea
-            className="input-field"
-            rows={4}
-            value={formData.sample_script}
-            onChange={(e) => setFormData({ ...formData, sample_script: e.target.value })}
-            placeholder="Sample Script"
-          />
+          <div>
+             <label className="block text-sm font-medium text-gray-700 mb-1">Sample Script (Optional)</label>
+             <textarea
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 outline-none text-sm bg-gray-50"
+                rows={3}
+                value={formData.sample_script}
+                onChange={(e) => setFormData({ ...formData, sample_script: e.target.value })}
+                placeholder="A starting point for the video script..."
+             />
+          </div>
 
-          <div className="flex justify-end gap-3">
-            <Button variant="ghost" onClick={() => setShowCreateModal(false)}>
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <Button type="button" variant="ghost" onClick={() => setShowCreateModal(false)}>
               Cancel
             </Button>
             <Button type="submit" variant="primary">
