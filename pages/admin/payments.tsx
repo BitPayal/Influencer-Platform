@@ -226,97 +226,141 @@ const AdminPayments: React.FC = () => {
         <title>Payments - Admin - Cehpoint Marketing Partners</title>
       </Head>
 
-      <div>
-        <div className="flex justify-between items-center mb-8">
+      <div className="space-y-6">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Payments</h1>
-            <p className="mt-1 text-gray-600">Manage influencer payments</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Payments</h1>
+            <p className="mt-1 text-sm md:text-base text-gray-600">Manage influencer payments & settlements</p>
           </div>
-          <div className="flex gap-3">
-             <Button variant="secondary" onClick={() => setRevenueModalOpen(true)}>
+          <div className="flex flex-wrap gap-3 w-full md:w-auto">
+             <Button 
+                variant="secondary" 
+                onClick={() => setRevenueModalOpen(true)}
+                className="flex-1 md:flex-none justify-center"
+             >
               <DollarSign className="h-4 w-4 mr-2" />
-              Revenue Settlement
+              Revenue Settle
             </Button>
-            <Button variant="primary" onClick={() => setModalOpen(true)}>
+            <Button 
+                variant="primary" 
+                onClick={() => setModalOpen(true)}
+                className="flex-1 md:flex-none justify-center"
+            >
               <Plus className="h-4 w-4 mr-2" />
-              Create Payment
+              New Payment
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <div className="text-sm text-gray-600 mb-1">Total Paid</div>
-            <div className="text-3xl font-bold text-green-600">
-              {formatCurrency(totalPaid)}
-            </div>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="bg-green-50 border-green-100">
+             <div className="flex items-center gap-4">
+                 <div className="p-3 bg-green-100 rounded-full text-green-600">
+                    <DollarSign className="h-6 w-6" />
+                 </div>
+                 <div>
+                    <div className="text-sm font-medium text-green-800">Total Paid</div>
+                    <div className="text-2xl font-bold text-green-900">
+                    {formatCurrency(totalPaid)}
+                    </div>
+                 </div>
+             </div>
           </Card>
-          <Card>
-            <div className="text-sm text-gray-600 mb-1">Pending Payments</div>
-            <div className="text-3xl font-bold text-yellow-600">
-              {formatCurrency(totalPending)}
-            </div>
+          
+          <Card className="bg-yellow-50 border-yellow-100">
+              <div className="flex items-center gap-4">
+                 <div className="p-3 bg-yellow-100 rounded-full text-yellow-600">
+                    <DollarSign className="h-6 w-6" />
+                 </div>
+                 <div>
+                    <div className="text-sm font-medium text-yellow-800">Pending Payments</div>
+                    <div className="text-2xl font-bold text-yellow-900">
+                    {formatCurrency(totalPending)}
+                    </div>
+                 </div>
+             </div>
           </Card>
-          <Card>
-            <div className="text-sm text-gray-600 mb-1">Total Transactions</div>
-            <div className="text-3xl font-bold text-gray-900">
-              {payments.length}
-            </div>
+
+          <Card className="bg-blue-50 border-blue-100">
+             <div className="flex items-center gap-4">
+                 <div className="p-3 bg-blue-100 rounded-full text-blue-600">
+                    <DollarSign className="h-6 w-6" />
+                 </div>
+                 <div>
+                    <div className="text-sm font-medium text-blue-800">Total Transactions</div>
+                    <div className="text-2xl font-bold text-blue-900">
+                    {payments.length}
+                    </div>
+                 </div>
+             </div>
           </Card>
         </div>
 
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Influencer</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Transaction ID</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {payments.map((payment) => (
-                <TableRow key={payment.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{payment.influencer.full_name}</div>
-                      <div className="text-sm text-gray-500">
-                        {payment.influencer.district}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-semibold">
-                    {formatCurrency(Number(payment.amount))}
-                  </TableCell>
-                  <TableCell>
-                    {payment.payment_type === 'fixed'
-                      ? 'Fixed Payment'
-                      : 'Revenue Share'}
-                  </TableCell>
-                  <TableCell>{getStatusBadge(payment.payment_status)}</TableCell>
-                  <TableCell className="text-sm text-gray-600">
-                    {payment.upi_transaction_id || '-'}
-                  </TableCell>
-                  <TableCell>{formatDateTime(payment.created_at)}</TableCell>
-                  <TableCell>
-                    {payment.payment_status === 'pending' && (
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => openMarkPaidModal(payment.id)}
-                      >
-                        Mark Paid
-                      </Button>
+        {/* Payments Table */}
+        <Card className="overflow-hidden">
+             <div className="overflow-x-auto">
+                <Table>
+                    <TableHeader>
+                    <TableRow>
+                        <TableHead>Influencer</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Transaction ID</TableHead>
+                        <TableHead>Created</TableHead>
+                        <TableHead>Actions</TableHead>
+                    </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                    {payments.length === 0 ? (
+                         <TableRow>
+                            <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                                No payment records found.
+                            </TableCell>
+                        </TableRow>
+                    ) : (
+                        payments.map((payment) => (
+                        <TableRow key={payment.id}>
+                        <TableCell>
+                            <div>
+                            <div className="font-medium text-gray-900">{payment.influencer.full_name}</div>
+                            <div className="text-xs text-gray-500">
+                                {payment.influencer.district}
+                            </div>
+                            </div>
+                        </TableCell>
+                        <TableCell className="font-bold text-gray-900">
+                            {formatCurrency(Number(payment.amount))}
+                        </TableCell>
+                        <TableCell>
+                            <span className="capitalize text-sm text-gray-700">
+                                {payment.payment_type.replace('_', ' ')}
+                            </span>
+                        </TableCell>
+                        <TableCell>{getStatusBadge(payment.payment_status)}</TableCell>
+                        <TableCell className="text-sm text-gray-500 font-mono">
+                            {payment.upi_transaction_id || '-'}
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-500">{formatDateTime(payment.created_at)}</TableCell>
+                        <TableCell>
+                            {payment.payment_status === 'pending' && (
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={() => openMarkPaidModal(payment.id)}
+                            >
+                                Mark Paid
+                            </Button>
+                            )}
+                        </TableCell>
+                        </TableRow>
+                    ))
                     )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                    </TableBody>
+                </Table>
+             </div>
         </Card>
 
         {/* Create Payment Modal */}

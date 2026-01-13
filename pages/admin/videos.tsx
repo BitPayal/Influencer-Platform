@@ -184,158 +184,211 @@ const AdminVideosPage = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">Video Submissions</h1>
+      <div className="space-y-8">
+        {/* Header & Filter */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Video Submissions</h1>
+            <p className="mt-1 text-gray-600">Review and manage influencer content</p>
+          </div>
           
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">Filter:</span>
-            <select
-              className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-            >
-              <option value="pending">Pending Review</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-              <option value="all">All Videos</option>
-            </select>
+          {/* Segmented Filter */}
+          <div className="bg-gray-100 p-1 rounded-lg flex flex-wrap">
+             {[
+               { id: 'pending', label: 'Pending' },
+               { id: 'approved', label: 'Approved' },
+               { id: 'rejected', label: 'Rejected' },
+               { id: 'all', label: 'All' }
+             ].map((status) => (
+                <button
+                  key={status.id}
+                  onClick={() => setFilter(status.id)}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                    filter === status.id 
+                      ? 'bg-white text-gray-900 shadow-sm' 
+                      : 'text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  {status.label}
+                </button>
+             ))}
           </div>
         </div>
 
         {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                <p className="font-bold">Error loading videos:</p>
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded flex items-center gap-2">
+                <span>⚠️</span>
                 <p>{error}</p>
             </div>
         )}
 
+        {/* Video Grid */}
         {videos.length === 0 ? (
-          <Card className="p-10 text-center text-gray-600">
-            No video submissions found
-          </Card>
+          <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+             <div className="text-4xl mb-4">📹</div>
+             <h3 className="text-xl font-semibold text-gray-900">No submissions found</h3>
+             <p className="text-gray-500 mt-2">Try changing the filter or wait for influencers to submit.</p>
+          </div>
         ) : (
-          videos.map((v) => {
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {videos.map((v) => {
              const influencer = (v as any).influencer;
              return (
-            <Card key={v.id} className="p-6 space-y-3 relative overflow-hidden">
-              {v.approval_status !== 'pending' && (
-                  <div className={`absolute top-0 right-0 px-3 py-1 text-xs font-bold uppercase ${
-                      v.approval_status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            <Card key={v.id} className="flex flex-col h-full border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
+              {/* Card Header: Status & Options */}
+              <div className="p-4 flex justify-between items-start gap-4">
+                 <div>
+                    <h2 className="font-bold text-gray-900 line-clamp-2 leading-tight" title={v.title}>
+                        {v.title}
+                    </h2>
+                    <p className="text-xs text-gray-500 mt-1">
+                        {new Date(v.submitted_at).toLocaleDateString()} at {new Date(v.submitted_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </p>
+                 </div>
+                 <span className={`shrink-0 px-2.5 py-0.5 text-xs font-bold uppercase rounded-full tracking-wide ${
+                      v.approval_status === 'approved' ? 'bg-green-100 text-green-700' : 
+                      v.approval_status === 'rejected' ? 'bg-red-100 text-red-700' : 
+                      'bg-yellow-100 text-yellow-700'
                   }`}>
                       {v.approval_status}
+                  </span>
+              </div>
+
+              {/* Description & Link */}
+              <div className="px-4 pb-4 flex-1">
+                  <p className="text-sm text-gray-600 line-clamp-3 mb-4">
+                      {v.description || 'No description provided.'}
+                  </p>
+                  
+                  <div className="flex gap-2">
+                    <a
+                        href={v.video_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex-1 inline-flex justify-center items-center px-4 py-2 bg-blue-50 text-blue-700 text-sm font-medium rounded hover:bg-blue-100 transition-colors"
+                    >
+                        Watch Video ↗
+                    </a>
+                     {v.video_file_url && (
+                        <a
+                        href={v.video_file_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-2 text-gray-500 hover:text-gray-900 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+                        title="Download File"
+                        >
+                            ⬇
+                        </a>
+                    )}
                   </div>
-              )}
-              
-              <h2 className="text-xl font-semibold pr-20">
-                {v.title}
-              </h2>
-
-              <p className="text-gray-700">{v.description}</p>
-
-              <div className="flex gap-4 items-center">
-                  <a
-                    href={v.video_url}
-                    className="text-white bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition-colors no-underline"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Watch Video
-                  </a>
-                  {v.video_file_url && (
-                       <a
-                       href={v.video_file_url}
-                       className="text-blue-600 hover:text-blue-800 underline"
-                       target="_blank"
-                       rel="noreferrer"
-                     >
-                       Download File
-                     </a>
-                  )}
               </div>
 
-              <div className="bg-gray-50 p-3 rounded text-sm">
-                <p><b>Influencer:</b> {influencer?.full_name}</p>
-                <p><b>Email:</b> {influencer?.email}</p>
-                <p><b>Followers:</b> {influencer?.follower_count?.toLocaleString()}</p>
-                <p><b>Current Rate:</b> ₹{influencer?.video_rate || 0}</p>
+              {/* Influencer Footer */}
+              <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                  <div className="flex items-center gap-2">
+                      <div className="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600">
+                          {influencer?.full_name?.charAt(0) || '?'}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-medium text-gray-900">{influencer?.full_name}</span>
+                        <span>{influencer?.follower_count?.toLocaleString()} followers</span>
+                      </div>
+                  </div>
+                  <div className="font-mono">
+                      Rate: ₹{influencer?.video_rate || 0}
+                  </div>
               </div>
 
-              <p className="text-sm text-gray-500">
-                Submitted: {new Date(v.submitted_at).toLocaleString()}
-              </p>
-
+              {/* Action Bar for Pending */}
               {v.approval_status === "pending" && (
-                <div className="flex gap-3 mt-3 pt-3 border-t">
-                  <Button variant="primary" onClick={() => handleOpenApprove(v)}>
-                    Approve
-                  </Button>
-                  <Button variant="danger" onClick={() => handleOpenReject(v)}>
+                <div className="grid grid-cols-2 divide-x divide-gray-100 border-t border-gray-100">
+                  <button 
+                    onClick={() => handleOpenReject(v)}
+                    className="py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
+                  >
                     Reject
-                  </Button>
+                  </button>
+                  <button 
+                    onClick={() => handleOpenApprove(v)}
+                    className="py-3 text-sm font-semibold text-green-600 hover:bg-green-50 transition-colors flex items-center justify-center gap-2"
+                  >
+                    Approve
+                  </button>
                 </div>
               )}
             </Card>
              );
-          })
+          })}
+          </div>
         )}
       </div>
 
+      {/* REJECTION MODAL */}
       <Modal
         isOpen={rejectionModalOpen}
         onClose={() => setRejectionModalOpen(false)}
-        title="Reject Video"
+        title="Reject Submission"
       >
         <div className="space-y-4">
-            <p className="text-gray-600">Please provide a reason for rejection.</p>
-            <textarea
-                className="w-full border rounded p-2 focus:ring-2 focus:ring-red-500 outline-none"
-                rows={4}
-                value={feedback}
-                onChange={(e) => setFeedback(e.target.value)}
-                placeholder="E.g., Low audio quality, script deviation..."
-            />
-            <div className="flex justify-end gap-2">
+            <div className="bg-red-50 p-4 rounded text-sm text-red-800">
+                You are about to reject <b>{selectedVideo?.title}</b>. This will notify the influencer.
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Rejection</label>
+                <textarea
+                    className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-red-500 outline-none text-sm"
+                    rows={4}
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    placeholder="e.g. Video quality is low, Guidelines missing..."
+                />
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
                 <Button variant="secondary" onClick={() => setRejectionModalOpen(false)}>Cancel</Button>
-                <Button variant="danger" onClick={confirmReject}>Confirm Reject</Button>
+                <Button variant="danger" onClick={confirmReject}>Reject Video</Button>
             </div>
         </div>
       </Modal>
 
+      {/* APPROVAL MODAL */}
       <Modal
         isOpen={approvalModalOpen}
         onClose={() => setApprovalModalOpen(false)}
-        title="Approve Video"
+        title="Approve Submission"
       >
-        <div className="space-y-4">
-            <p className="text-gray-600">Are you sure you want to approve this video?</p>
+        <div className="space-y-5">
+            <div className="bg-green-50 p-4 rounded text-sm text-green-800">
+                 You are about to approve <b>{selectedVideo?.title}</b>. This will generate a payment record.
+            </div>
             
-            {showRateInput && (
-                <div className="bg-orange-50 p-4 rounded border border-orange-200">
-                    <p className="text-sm text-orange-800 font-bold mb-2">First Video Review</p>
-                    <p className="text-sm text-orange-700 mb-2">
-                        This influencer does not have a set rate yet. Based on this video's quality, please assign their permanent per-video rate.
+            {showRateInput ? (
+                <div className="border border-orange-200 bg-orange-50 p-4 rounded-md">
+                    <h4 className="text-sm font-bold text-orange-900 mb-2">⚠️ Rate Not Set</h4>
+                    <p className="text-sm text-orange-800 mb-3">
+                        This is the influencer's first approved video. Please set their permanent <b>Rate Per Video</b> based on quality.
                     </p>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Rate (₹)</label>
-                    <Input 
-                        type="number" 
-                        value={rate} 
-                        onChange={(e) => setRate(e.target.value)}
-                        placeholder="e.g. 5000"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Recommended: ₹2,000 - ₹10,000</p>
+                    <div className="flex flex-col gap-1">
+                        <label className="text-xs font-semibold uppercase text-gray-500">Enter Rate (₹)</label>
+                        <Input 
+                            type="number" 
+                            value={rate} 
+                            onChange={(e) => setRate(e.target.value)}
+                            placeholder="e.g. 5000"
+                            className="bg-white"
+                        />
+                        <p className="text-xs text-gray-500">Typical range: ₹2,000 - ₹10,000</p>
+                    </div>
+                </div>
+            ) : (
+                <div className="flex justify-between items-center p-3 border border-gray-200 rounded bg-gray-50">
+                     <span className="text-sm text-gray-600">Applicable Rate:</span>
+                     <span className="text-lg font-bold text-gray-900">₹{(selectedVideo as any)?.influencer?.video_rate}</span>
                 </div>
             )}
 
-            {!showRateInput && selectedVideo && (
-                 <p className="text-sm bg-green-50 text-green-700 p-2 rounded">
-                    Influencer Rate: <b>₹{(selectedVideo as any).influencer?.video_rate}</b>
-                 </p>
-            )}
-
-            <div className="flex justify-end gap-2 mt-4">
+            <div className="flex justify-end gap-3 pt-2">
                 <Button variant="secondary" onClick={() => setApprovalModalOpen(false)}>Cancel</Button>
-                <Button variant="primary" onClick={confirmApprove}>Confirm Approve & Pay</Button>
+                <Button variant="primary" onClick={confirmApprove}>Confirm & Pay</Button>
             </div>
         </div>
       </Modal>
