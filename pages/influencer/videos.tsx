@@ -189,14 +189,19 @@ const InfluencerVideos: React.FC = () => {
     setSubmitting(true);
     setFormErrors({ title: '', description: '', videoUrl: '', campaign: '' });
 
-    try {
+      if (!influencer?.id) {
+        throw new Error("User session invalid. Please refresh the page.");
+      }
+
       const payload: any = {
-        influencer_id: influencer?.id,
+        influencer_id: influencer.id,
         title: formData.title,
         description: formData.description,
         video_url: formData.videoUrl,
         approval_status: 'pending',
         submitted_at: new Date().toISOString(),
+        campaign_id: null, // explicit null
+        task_assignment_id: null, // explicit null
       };
 
       if (selectedTaskAssignmentId) {
@@ -207,9 +212,13 @@ const InfluencerVideos: React.FC = () => {
         payload.campaign_id = selectedCampaignId;
       }
 
+      console.log("Submitting payload:", payload);
       const { error } = await supabase.from('video_submissions').insert(payload);
 
-      if (error) throw error;
+      if (error) {
+          console.error("Supabase insert error:", error);
+          throw error;
+      }
 
       setMessage({ type: 'success', text: 'Video submitted successfully! It will be reviewed shortly.' });
       setModalOpen(false);
@@ -221,7 +230,13 @@ const InfluencerVideos: React.FC = () => {
       router.replace('/influencer/videos', undefined, { shallow: true });
       fetchData();
     } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Failed to submit video' });
+      console.error("Submission error:", error);
+      const errorMsg = error.message || 'Failed to submit video';
+      setMessage({ type: 'error', text: errorMsg });
+      // Fallback alert for immediate feedback
+      if (!errorMsg.includes("User session")) { // Don't alert if it's just a session refresh hint
+          alert(`Error: ${errorMsg}`);
+      }
     } finally {
       setSubmitting(false);
     }

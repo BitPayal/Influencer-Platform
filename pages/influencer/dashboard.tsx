@@ -98,8 +98,7 @@ const InfluencerDashboard: NextPageWithLayout = () => {
           videosData.filter((v: any) => v.approval_status === 'pending').length,
         total_earnings:
           paymentsData
-            .filter((p: any) => p.payment_status === 'paid')
-            .reduce((sum: number, p: any) => sum + p.amount, 0),
+            .reduce((sum: number, p: any) => sum + (p.amount || 0), 0),
         pending_payments:
           paymentsData
             .filter((p: any) => p.payment_status === 'pending')
