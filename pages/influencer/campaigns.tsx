@@ -53,7 +53,7 @@ const BrowseCampaigns: React.FC = () => {
             if (tasksError) console.error('Error fetching tasks:', tasksError);
 
             // Normalize Tasks to look like Campaigns
-            const normalizedTasks = (tasksData || []).map(task => ({
+            const normalizedTasks = ((tasksData as any[]) || []).map(task => ({
                 id: task.id,
                 title: task.title,
                 description: task.description,
