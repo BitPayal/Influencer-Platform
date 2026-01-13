@@ -193,6 +193,7 @@ const InfluencerVideos: React.FC = () => {
         throw new Error("User session invalid. Please refresh the page.");
       }
 
+      try {
       const payload: any = {
         influencer_id: influencer.id,
         title: formData.title,
