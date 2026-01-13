@@ -49,8 +49,8 @@ const AdminApplications = () => {
     try {
       const newStatus = approved ? 'assigned' : 'rejected';
       
-      const { error } = await supabase
-        .from('influencer_tasks')
+      const { error } = await (supabase
+        .from('influencer_tasks') as any)
         .update({ status: newStatus })
         .eq('id', id);
 
