@@ -74,6 +74,17 @@ const InfluencerTasksPage = () => {
         .select("*")
         .eq("influencer_id", influencerId);
         
+      // 5. Fetch approved task applications (influencer_tasks)
+      // These are tasks the influencer applied for and got approved
+      const { data: approvedApplications } = await supabase
+        .from("influencer_tasks")
+        .select(`
+            *,
+            tasks(*)
+        `)
+        .eq("influencer_id", influencerId)
+        .eq("status", "assigned"); // Admin approves by setting status to 'assigned'
+
       const typedSubmissions = (submissions || []) as any[];
 
       // Helper to find submission for campaign
@@ -121,8 +132,23 @@ const InfluencerTasksPage = () => {
         };
       });
 
+      // 7. Normalize Approved Applications
+      const normalizedApplications = (approvedApplications || []).map((app: any) => ({
+        id: app.id,
+        type: 'assignment', // Treat as standard assignment for UI consistency
+        title: app.tasks?.title || 'Approved Task',
+        description: app.tasks?.description,
+        topic: app.tasks?.topic,
+        guidelines: app.tasks?.guidelines,
+        status: app.status, 
+        created_at: app.created_at,
+        assigned_month: app.assigned_month,
+        assigned_year: app.assigned_year,
+        raw: app
+      }));
+
       // Combine and sort by date
-      const allTasks = [...normalizedCampaigns, ...normalizedAssignments].sort(
+      const allTasks = [...normalizedCampaigns, ...normalizedAssignments, ...normalizedApplications].sort(
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
 
