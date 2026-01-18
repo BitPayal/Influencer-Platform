@@ -70,8 +70,8 @@ const AdminApplications = () => {
                  assigned_year: app.assigned_year || new Date().getFullYear(),
              };
 
-             const { error: assignError } = await supabase
-                .from('task_assignments')
+             const { error: assignError } = await (supabase
+                .from('task_assignments') as any)
                 .insert([assignmentPayload]);
             
              if (assignError) {
