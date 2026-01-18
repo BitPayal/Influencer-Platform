@@ -54,8 +54,7 @@ const InfluencerVideos: React.FC = () => {
       setModalOpen(true);
     }
     
-    if (router.query.task) {
-        // setSelectedTaskAssignmentId(router.query.task as string); // Moved to fetchTaskDetails success
+    if (router.query.task && influencer) {
         fetchTaskDetails(router.query.task as string);
         setModalOpen(true);
     }
@@ -67,19 +66,43 @@ const InfluencerVideos: React.FC = () => {
     }
   }, [router.query]);
 
-  const fetchTaskDetails = async (assignmentId: string) => {
+  const fetchTaskDetails = async (inputTaskValue: string) => {
+      // 1. Check if input is UUID
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(inputTaskValue);
+      
       try {
-          const { data, error } = await supabase
-            .from('task_assignments')
-            .select('*, tasks(*)')
-            .eq('id', assignmentId)
-            .single();
+          let data = null;
+          let error = null;
+
+          if (isUUID) {
+              // It's likely a direct Task Assignment ID
+              const result = await supabase
+                .from('task_assignments')
+                .select('*, tasks(*)')
+                .eq('id', inputTaskValue)
+                .single();
+              data = result.data;
+              error = result.error;
+          } else {
+              // It's likely an Integer Task ID from the Task Definition
+              // We need to find the assignment for this task and current influencer
+              if (!influencer?.id) return; // Wait for influencer data
+
+              const result = await supabase
+                  .from('task_assignments')
+                  .select('*, tasks(*)')
+                  .eq('task_id', inputTaskValue)
+                  .eq('influencer_id', influencer.id)
+                  .single();
+              data = result.data;
+              error = result.error;
+          }
             
           if (error) throw error;
           
           if (data) {
             setSelectedTaskDetails(data);
-            setSelectedTaskAssignmentId(assignmentId); // Only set ID if valid
+            setSelectedTaskAssignmentId(data.id); // ALWAYS set the UUID
             const taskData = data as any;
             if (taskData && taskData.tasks) {
                 setFormData(prev => ({ 
@@ -96,7 +119,7 @@ const InfluencerVideos: React.FC = () => {
           console.error("Error fetching task details:", err);
           setSelectedTaskAssignmentId(null); // Reset on error
           // Optional: Show a toast warning that the task link was invalid
-          setMessage({ type: 'error', text: 'Invalid task link. Submitting as general portfolio video.' });
+          setMessage({ type: 'error', text: 'Invalid task link or assignment not found for this task.' });
       }
   }
 

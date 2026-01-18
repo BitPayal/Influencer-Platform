@@ -63,7 +63,7 @@ const AdminVideosPage = () => {
         setRate("");
     } else {
         setShowRateInput(false);
-        setRate(inf.video_rate?.toString() || "0");
+        setRate(inf.video_rate ? inf.video_rate.toString() : "0");
     }
     setApprovalModalOpen(true);
   };
