@@ -49,17 +49,43 @@ const AdminApplications = () => {
     try {
       const newStatus = approved ? 'assigned' : 'rejected';
       
-      const { error } = await (supabase
+      // 1. Update the application status
+      const { error: updateError } = await (supabase
         .from('influencer_tasks') as any)
         .update({ status: newStatus })
         .eq('id', id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // 2. If approved, create a real task_assignment record (UUID)
+      if (approved) {
+         // Get the application details to copy over
+         const app = applications.find(a => a.id === id);
+         if (app) {
+             const assignmentPayload = {
+                 task_id: app.task_id,
+                 influencer_id: app.influencer_id,
+                 status: 'assigned',
+                 assigned_month: app.assigned_month || new Date().toLocaleString("default", { month: "long" }),
+                 assigned_year: app.assigned_year || new Date().getFullYear(),
+             };
+
+             const { error: assignError } = await supabase
+                .from('task_assignments')
+                .insert([assignmentPayload]);
+            
+             if (assignError) {
+                 console.error("Error creating assignment:", assignError);
+                 toast.error("Application approved, but failed to create assignment record.");
+                 return; 
+             }
+         }
+      }
 
       toast.success(`Application ${approved ? 'approved' : 'rejected'}`);
       setApplications(prev => prev.filter(app => app.id !== id));
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating application:', error);
       toast.error('Failed to update application');
     }

@@ -55,7 +55,7 @@ const InfluencerVideos: React.FC = () => {
     }
     
     if (router.query.task) {
-        setSelectedTaskAssignmentId(router.query.task as string);
+        // setSelectedTaskAssignmentId(router.query.task as string); // Moved to fetchTaskDetails success
         fetchTaskDetails(router.query.task as string);
         setModalOpen(true);
     }
@@ -76,17 +76,27 @@ const InfluencerVideos: React.FC = () => {
             .single();
             
           if (error) throw error;
-          setSelectedTaskDetails(data);
-          const taskData = data as any;
-          if (taskData && taskData.tasks) {
-              setFormData(prev => ({ 
-                  ...prev, 
-                  title: `${taskData.tasks.title} - Submission`, 
-                  description: `Submission for task: ${taskData.tasks.title}` 
-              }));
+          
+          if (data) {
+            setSelectedTaskDetails(data);
+            setSelectedTaskAssignmentId(assignmentId); // Only set ID if valid
+            const taskData = data as any;
+            if (taskData && taskData.tasks) {
+                setFormData(prev => ({ 
+                    ...prev, 
+                    title: `${taskData.tasks.title} - Submission`, 
+                    description: `Submission for task: ${taskData.tasks.title}` 
+                }));
+            }
+          } else {
+              // Task not found
+              setSelectedTaskAssignmentId(null);
           }
       } catch (err) {
           console.error("Error fetching task details:", err);
+          setSelectedTaskAssignmentId(null); // Reset on error
+          // Optional: Show a toast warning that the task link was invalid
+          setMessage({ type: 'error', text: 'Invalid task link. Submitting as general portfolio video.' });
       }
   }
 

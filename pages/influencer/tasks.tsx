@@ -83,7 +83,7 @@ const InfluencerTasksPage = () => {
             tasks(*)
         `)
         .eq("influencer_id", influencerId)
-        .eq("status", "assigned"); // Admin approves by setting status to 'assigned'
+        .in("status", ["pending_approval", "rejected"]); // Only fetch pending/rejected for status display, assignments are handled by task_assignments table
 
       const typedSubmissions = (submissions || []) as any[];
 
@@ -135,8 +135,8 @@ const InfluencerTasksPage = () => {
       // 7. Normalize Approved Applications
       const normalizedApplications = (approvedApplications || []).map((app: any) => ({
         id: app.id,
-        type: 'assignment', // Treat as standard assignment for UI consistency
-        title: app.tasks?.title || 'Approved Task',
+        type: 'application', // Distinguish from active assignment
+        title: app.tasks?.title || 'Task Application',
         description: app.tasks?.description,
         topic: app.tasks?.topic,
         guidelines: app.tasks?.guidelines,
